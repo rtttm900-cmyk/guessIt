@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuessIt - تخمين الأرقام</title>
+
+    <style>
+        body {
+            background: #151515;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+            padding: 25px;
+        }
+
+        .game {
+            background: #252525;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 420px;
+            margin: auto;
+        }
+
+        input {
+            padding: 12px;
+            width: 85%;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 17px;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 17px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #5865F2;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            background: #333;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 12px 0;
+        }
+
+        #message {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        .stop {
+            background: #d93636;
+        }
+
+        .restart {
+            background: #168b58;
+        }
+
+        .home {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game">
+
+        <h1>🎮 GuessIt</h1>
+        <h2>لعبة تخمين الأرقام</h2>
+
+        <p>اختر أعلى رقم تريد التخمين منه:</p>
+
+        <input
+            type="number"
+            id="maxNumber"
+            placeholder="مثلاً 1000"
+            min="2"
+        >
+
+        <br>
+
+        <button id="startBtn" onclick="startGame()">
+            ابدأ اللعبة
+        </button>
+
+        <hr>
+
+        <div class="stats">
+            <p>عدد المحاولات: <span id="attempts">0</span></p>
+            <p>الوقت المستغرق: <span id="timer">00:00</span></p>
+        </div>
+
+        <p id="message">اختر الرقم الأعلى وابدأ اللعب!</p>
+
+        <input
+            type="number"
+            id="guess"
+            placeholder="اكتب تخمينك"
+            disabled
+        >
+
+        <br>
+
+        <button id="guessBtn" onclick="checkGuess()" disabled>
+            تأكيد التخمين
+        </button>
+
+        <br>
+
+        <button class="restart" onclick="restartGame()">
+            إعادة اللعب 🔄
+        </button>
+
+        <button class="stop" onclick="stopGame()">
+            إيقاف اللعبة ⏹️
+        </button>
+
+        <br>
+
+        <button class="home" onclick="location.href='index.html'">
+            العودة للصفحة الرئيسية
+        </button>
+
+    </div>
+
+    <script src="numbers.js"></script>
+
+</body>
+</html>
