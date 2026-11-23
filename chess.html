@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10131c">
+
+    <title>Chess Arena | منصة الشطرنج</title>
+
+    <meta name="description" content="منصة شطرنج احترافية للعب ضد الكمبيوتر أو الأصدقاء.">
+    <meta name="author" content="Chess Arena">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="chess.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="chess.js" defer></script>
+</head>
+
+<body>
+
+<div class="chess-app" id="chessApp">
+
+    <!-- Background -->
+    <div class="app-background"></div>
+
+    <!-- Main Header -->
+    <header class="chess-header">
+
+        <div class="header-brand">
+            <div class="brand-icon">♞</div>
+
+            <div class="brand-details">
+                <h1>CHESS ARENA</h1>
+                <span>THE ULTIMATE CHESS EXPERIENCE</span>
+            </div>
+        </div>
+
+        <nav class="header-navigation">
+
+            <button class="nav-button active" data-page="home">
+                <span>⌂</span>
+                الرئيسية
+            </button>
+
+            <button class="nav-button" data-page="play">
+                <span>♟</span>
+                العب
+            </button>
+
+            <button class="nav-button" data-page="rooms">
+                <span>♙</span>
+                الغرف
+            </button>
+
+            <button class="nav-button" data-page="stats">
+                <span>▤</span>
+                الإحصائيات
+            </button>
+
+        </nav>
+
+        <div class="header-actions">
+
+            <button class="icon-button" id="soundToggle" title="الصوت">
+                ♫
+            </button>
+
+            <button class="icon-button" id="settingsButton" title="الإعدادات">
+                ⚙
+            </button>
+
+            <div class="user-profile">
+                <div class="user-avatar">♔</div>
+
+                <div class="user-info">
+                    <strong id="headerPlayerName">Player</strong>
+                    <span id="headerPlayerRating">1200 ELO</span>
+                </div>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main Layout -->
+    <main class="main-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-section">
+
+                <span class="sidebar-title">القائمة الرئيسية</span>
+
+                <button class="sidebar-link active" data-page="home">
+                    <span>⌂</span>
+                    الرئيسية
+                </button>
+
+                <button class="sidebar-link" data-page="play">
+                    <span>♟</span>
+                    اللعب
+                </button>
+
+                <button class="sidebar-link" data-page="rooms">
+                    <span>♙</span>
+                    غرف الأصدقاء
+                </button>
+
+                <button class="sidebar-link" data-page="computer">
+                    <span>♞</span>
+                    ضد الكمبيوتر
+                </button>
+
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+
+                <span class="sidebar-title">أدوات الشطرنج</span>
+
+                <button class="sidebar-link" data-page="history">
+                    <span>◷</span>
+                    سجل المباريات
+                </button>
+
+                <button class="sidebar-link" data-page="analysis">
+                    <span>⌁</span>
+                    تحليل المباريات
+                </button>
+
+                <button class="sidebar-link" data-page="training">
+                    <span>✦</span>
+                    التدريب
+                </button>
+
+            </div>
+
+            <div class="sidebar-bottom">
+
+                <div class="sidebar-status">
+                    <span class="status-indicator"></span>
+                    <span>النظام جاهز</span>
+                </div>
+
+                <span class="version-label">CHESS ARENA V1.0</span>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Content -->
+        <section class="content-area">
+
+
+            <!-- HOME PAGE -->
+            <section class="app-page active" id="page-home">
+
+                <div class="welcome-section">
+
+                    <div class="welcome-text">
+                        <span class="section-eyebrow">WELCOME TO CHESS ARENA</span>
+
+                        <h2>
+                            عالم الشطرنج
+                            <span>بين يديك.</span>
+                        </h2>
+
+                        <p>
+                            اختبر مهاراتك، واجه الكمبيوتر، أو تحدَّ أصدقاءك
+                            في مباريات شطرنج خاصة.
+                        </p>
+
+                        <button class="primary-button" id="homePlayButton">
+                            ابدأ اللعب
+                            <span>←</span>
+                        </button>
+                    </div>
+
+                    <div class="welcome-art">
+                        <div class="art-glow"></div>
+                        <div class="hero-chess-piece">♞</div>
+                        <div class="hero-decoration">CHESS</div>
+                    </div>
+
+                </div>
+
+
+                <!-- Quick Play -->
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-eyebrow">GAME MODES</span>
+                        <h3>اختر طريقة اللعب</h3>
+                    </div>
+
+                    <span class="section-description">
+                        ابدأ مباراتك بالطريقة التي تناسبك
+                    </span>
+
+                </div>
+
+
+                <div class="mode-grid">
+
+                    <article class="mode-card computer-mode">
+
+                        <div class="mode-icon">♞</div>
+
+                        <span class="mode-tag">SINGLE PLAYER</span>
+
+                        <h3>ضد الكمبيوتر</h3>
+
+                        <p>
+                            اختبر قدراتك أمام الذكاء الاصطناعي
+                            واختر مستوى الصعوبة.
+                        </p>
+
+                        <button class="mode-button" data-page="computer">
+                            العب الآن
+                            <span>←</span>
+                        </button>
+
+                    </article>
+
+
+                    <article class="mode-card friends-mode">
+
+                        <div class="mode-icon">♟</div>
+
+                        <span class="mode-tag">PRIVATE MATCH</span>
+
+                        <h3>العب مع صديق</h3>
+
+                        <p>
+                            أنشئ غرفة خاصة وشارك رمزها
+                            مع صديقك لبدء المباراة.
+                        </p>
+
+                        <button class="mode-button" data-page="rooms">
+                            إنشاء غرفة
+                            <span>←</span>
+                        </button>
+
+                    </article>
+
+
+                    <article class="mode-card training-mode">
+
+                        <div class="mode-icon">✦</div>
+
+                        <span class="mode-tag">CHESS TRAINING</span>
+
+                        <h3>تطوير المهارات</h3>
+
+                        <p>
+                            تدرب على أساسيات الشطرنج
+                            وحسّن طريقة تفكيرك.
+                        </p>
+
+                        <button class="mode-button" data-page="training">
+                            قريباً
+                            <span>←</span>
+                        </button>
+
+                    </article>
+
+                </div>
+
+
+                <!-- Statistics -->
+                <div class="section-heading">
+                    <div>
+                        <span class="section-eyebrow">YOUR PERFORMANCE</span>
+                        <h3>ملخص أدائك</h3>
+                    </div>
+                </div>
+
+
+                <div class="statistics-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♜</span>
+                        <span class="stat-label">إجمالي المباريات</span>
+                        <strong id="totalGames">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♔</span>
+                        <span class="stat-label">الانتصارات</span>
+                        <strong id="totalWins">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♟</span>
+                        <span class="stat-label">الهزائم</span>
+                        <strong id="totalLosses">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">＝</span>
+                        <span class="stat-label">التعادلات</span>
+                        <strong id="totalDraws">0</strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- PLAY PAGE -->
+            <section class="app-page" id="page-play">
+
+                <div class="page-heading">
+                    <div>
+                        <span class="section-eyebrow">CHESS GAME</span>
+                        <h2>ساحة اللعب</h2>
+                        <p>استمتع بمباراة شطرنج احترافية.</p>
+                    </div>
+                </div>
+
+
+                <div class="game-layout">
+
+
+                    <!-- Board Section -->
+                    <div class="board-container">
+
+                        <!-- Black Player -->
+                        <div class="player-bar" id="blackPlayerBar">
+
+                            <div class="player-details">
+                                <div class="player-avatar black-avatar">♚</div>
+
+                                <div>
+                                    <strong id="blackPlayerName">Black Player</strong>
+                                    <span id="blackPlayerStatus">الأسود</span>
+                                </div>
+                            </div>
+
+                            <div class="player-clock" id="blackClock">
+                                10:00
+                            </div>
+
+                        </div>
+
+
+                        <!-- Chess Board -->
+                        <div class="board-wrapper">
+
+                            <div class="board-coordinates left-coordinates">
+                                <span>8</span>
+                                <span>7</span>
+                                <span>6</span>
+                                <span>5</span>
+                                <span>4</span>
+                                <span>3</span>
+                                <span>2</span>
+                                <span>1</span>
+                            </div>
+
+                            <div class="chess-board" id="chessBoard"
+                                 role="grid"
+                                 aria-label="Chess board">
+
+                                <!-- Squares generated by JavaScript -->
+
+                            </div>
+
+                            <div class="board-coordinates bottom-coordinates">
+                                <span>a</span>
+                                <span>b</span>
+                                <span>c</span>
+                                <span>d</span>
+                                <span>e</span>
+                                <span>f</span>
+                                <span>g</span>
+                                <span>h</span>
+                            </div>
+
+                        </div>
+
+
+                        <!-- White Player -->
+                        <div class="player-bar" id="whitePlayerBar">
+
+                            <div class="player-details">
+                                <div class="player-avatar white-avatar">♔</div>
+
+                                <div>
+                                    <strong id="whitePlayerName">White Player</strong>
+                                    <span id="whitePlayerStatus">الأبيض</span>
+                                </div>
+                            </div>
+
+                            <div class="player-clock active-clock" id="whiteClock">
+                                10:00
+                            </div>
+
+                        </div>
+
+
+                        <!-- Game Information -->
+                        <div class="game-information">
+
+                            <div class="information-item">
+                                <span>مدة المباراة</span>
+                                <strong id="gameDuration">00:00</strong>
+                            </div>
+
+                            <div class="information-item">
+                                <span>عدد النقلات</span>
+                                <strong id="moveCounter">0</strong>
+                            </div>
+
+                            <div class="information-item">
+                                <span>حالة المباراة</span>
+                                <strong id="gameStatus">جاهز</strong>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Board Controls -->
+                        <div class="board-controls">
+
+                            <button id="undoMoveButton" class="control-button">
+                                ↶
+                                تراجع
+                            </button>
+
+                            <button id="flipBoardButton" class="control-button">
+                                ⇅
+                                قلب الرقعة
+                            </button>
+
+                            <button id="restartGameButton" class="control-button">
+                                ↻
+                                إعادة
+                            </button>
+
+                            <button id="resignButton" class="control-button danger-button">
+                                استسلام
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Game Side Panel -->
+                    <aside class="game-sidebar">
+
+                        <div class="game-panel">
+
+                            <div class="panel-heading">
+                                <h3>المباراة</h3>
+                                <span class="live-indicator">LIVE</span>
+                            </div>
+
+                            <div class="game-mode-information">
+                                <span>نوع المباراة</span>
+                                <strong id="currentGameMode">لم تبدأ المباراة</strong>
+                            </div>
+
+                            <div class="game-divider"></div>
+
+                            <div class="panel-heading">
+                                <h3>سجل النقلات</h3>
+                                <span id="historyCount">0</span>
+                            </div>
+
+                            <div class="move-history" id="moveHistory">
+
+                                <div class="empty-history">
+                                    <span>♟</span>
+                                    <p>لم تبدأ أي نقلة بعد</p>
+                                </div>
+
+                            </div>
+
+                            <div class="game-divider"></div>
+
+                            <div class="game-panel-actions">
+
+                                <button id="copyPGNButton" class="secondary-button">
+                                    نسخ النقلات
+                                </button>
+
+                                <button id="newGameButton" class="primary-button">
+                                    مباراة جديدة
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Position Info -->
+                        <div class="position-card">
+
+                            <h3>معلومات الوضعية</h3>
+
+                            <div class="position-row">
+                                <span>الدور الحالي</span>
+                                <strong id="currentTurn">الأبيض</strong>
+                            </div>
+
+                            <div class="position-row">
+                                <span>حالة الملك</span>
+                                <strong id="kingStatus">آمن</strong>
+                            </div>
+
+                            <div class="position-row">
+                                <span>النقلة الأخيرة</span>
+                                <strong id="lastMove">—</strong>
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- COMPUTER PAGE -->
+            <section class="app-page" id="page-computer">
+
+                <div class="page-heading">
+                    <span class="section-eyebrow">ARTIFICIAL INTELLIGENCE</span>
+                    <h2>العب ضد الكمبيوتر</h2>
+                    <p>اختر مستوى الصعوبة واللون ثم ابدأ التحدي.</p>
+                </div>
+
+
+                <div class="setup-card">
+
+                    <div class="setup-section">
+
+                        <h3>مستوى الذكاء الاصطناعي</h3>
+
+                        <div class="difficulty-grid">
+
+                            <button class="difficulty-card" data-level="1">
+                                <span>♟</span>
+                                <strong>مبتدئ</strong>
+                                <small>سهل</small>
+                            </button>
+
+                            <button class="difficulty-card active" data-level="2">
+                                <span>♞</span>
+                                <strong>متوسط</strong>
+                                <small>متوازن</small>
+                            </button>
+
+                            <button class="difficulty-card" data-level="3">
+                                <span>♜</span>
+                                <strong>متقدم</strong>
+                                <small>صعب</small>
+                            </button>
+
+                            <button class="difficulty-card" data-level="4">
+                                <span>♛</span>
+                                <strong>خبير</strong>
+                                <small>احترافي</small>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setup-section">
+
+                        <h3>اختر لونك</h3>
+
+                        <div class="color-selection">
+
+                            <button class="color-option active" data-color="white">
+                                <span>♔</span>
+                                الأبيض
+                            </button>
+
+                            <button class="color-option" data-color="black">
+                                <span>♚</span>
+                                الأسود
+                            </button>
+
+                            <button class="color-option" data-color="random">
+                                <span>♟</span>
+                                عشوائي
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setup-section">
+
+                        <h3>وقت المباراة</h3>
+
+                        <div class="time-selection">
+
+                            <button class="time-option" data-time="1">
+                                1 دقيقة
+                            </button>
+
+                            <button class="time-option" data-time="3">
+                                3 دقائق
+                            </button>
+
+                            <button class="time-option active" data-time="5">
+                                5 دقائق
+                            </button>
+
+                            <button class="time-option" data-time="10">
+                                10 دقائق
+                            </button>
+
+                            <button class="time-option" data-time="15">
+                                15 دقيقة
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <button class="primary-button large-button" id="startComputerGame">
+                        ابدأ المباراة
+                        <span>←</span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ROOMS PAGE -->
+            <section class="app-page" id="page-rooms">
+
+                <div class="page-heading">
+
+                    <span class="section-eyebrow">PRIVATE CHESS ROOMS</span>
+
+                    <h2>غرف الأصدقاء</h2>
+
+                    <p>
+                        أنشئ غرفة خاصة أو انضم إلى صديقك باستخدام رمز الغرفة.
+                    </p>
+
+                </div>
+
+
+                <div class="rooms-layout">
+
+                    <div class="room-card">
+
+                        <div class="room-icon">♔</div>
+
+                        <span class="section-eyebrow">CREATE ROOM</span>
+
+                        <h3>إنشاء غرفة جديدة</h3>
+
+                        <p>
+                            أنشئ مباراة خاصة واحصل على رمز
+                            يمكنك مشاركته مع صديقك.
+                        </p>
+
+                        <div class="room-options">
+
+                            <label for="roomTime">وقت المباراة</label>
+
+                            <select id="roomTime">
+                                <option value="1">1 دقيقة</option>
+                                <option value="3">3 دقائق</option>
+                                <option value="5" selected>5 دقائق</option>
+                                <option value="10">10 دقائق</option>
+                                <option value="15">15 دقيقة</option>
+                            </select>
+
+
+                            <label for="roomColor">لون القطع</label>
+
+                            <select id="roomColor">
+                                <option value="white">الأبيض</option>
+                                <option value="black">الأسود</option>
+                                <option value="random" selected>عشوائي</option>
+                            </select>
+
+                        </div>
+
+
+                        <button class="primary-button full-button" id="createRoomButton">
+                            إنشاء الغرفة
+                        </button>
+
+                    </div>
+
+
+
+                    <div class="room-card">
+
+                        <div class="room-icon">♟</div>
+
+                        <span class="section-eyebrow">JOIN ROOM</span>
+
+                        <h3>الانضمام إلى غرفة</h3>
+
+                        <p>
+                            أدخل رمز الغرفة الذي أرسله لك صديقك
+                            للانضمام إلى المباراة.
+                        </p>
+
+
+                        <div class="room-input-container">
+
+                            <label for="roomCodeInput">رمز الغرفة</label>
+
+                            <input
+                                type="text"
+                                id="roomCodeInput"
+                                placeholder="أدخل رمز الغرفة..."
+                                maxlength="12"
+                                autocomplete="off"
+                            >
+
+                        </div>
+
+
+                        <button class="primary-button full-button" id="joinRoomButton">
+                            انضمام إلى الغرفة
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Created Room -->
+                <div class="created-room-card hidden" id="createdRoomCard">
+
+                    <div class="room-success-icon">✓</div>
+
+                    <h3>تم إنشاء الغرفة</h3>
+
+                    <p>شارك الرمز التالي مع صديقك:</p>
+
+                    <div class="room-code-display">
+
+                        <strong id="generatedRoomCode">--------</strong>
+
+                        <button id="copyRoomCodeButton" title="نسخ الرمز">
+                            نسخ
+                        </button>
+
+                    </div>
+
+                    <div class="room-waiting-status">
+                        <span class="status-indicator"></span>
+                        بانتظار انضمام صديقك
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- STATISTICS PAGE -->
+            <section class="app-page" id="page-stats">
+
+                <div class="page-heading">
+                    <span class="section-eyebrow">PLAYER STATISTICS</span>
+                    <h2>إحصائيات اللاعب</h2>
+                    <p>تابع أداءك ونتائج مبارياتك.</p>
+                </div>
+
+
+                <div class="statistics-grid expanded-stats">
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♜</span>
+                        <span class="stat-label">المباريات</span>
+                        <strong id="statsGames">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♔</span>
+                        <span class="stat-label">الانتصارات</span>
+                        <strong id="statsWins">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♟</span>
+                        <span class="stat-label">الهزائم</span>
+                        <strong id="statsLosses">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">＝</span>
+                        <span class="stat-label">التعادلات</span>
+                        <strong id="statsDraws">0</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="history-card">
+
+                    <h3>آخر المباريات</h3>
+
+                    <div id="recentGamesList">
+                        <div class="empty-history">
+                            لا توجد مباريات مسجلة حالياً.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- HISTORY PAGE -->
+            <section class="app-page" id="page-history">
+
+                <div class="page-heading">
+                    <span class="section-eyebrow">MATCH HISTORY</span>
+                    <h2>سجل المباريات</h2>
+                    <p>راجع نتائج مبارياتك السابقة.</p>
+                </div>
+
+                <div class="history-card" id="fullMatchHistory">
+                    <div class="empty-history">
+                        لا توجد مباريات سابقة.
+                    </div>
+                </div>
+
+            </section>
+
+
+
+            <!-- ANALYSIS PAGE -->
+            <section class="app-page" id="page-analysis">
+
+                <div class="page-heading">
+                    <span class="section-eyebrow">CHESS ANALYSIS</span>
+                    <h2>تحليل المباريات</h2>
+                    <p>راجع النقلات وافهم جودة أدائك.</p>
+                </div>
+
+                <div class="coming-soon-card">
+                    <span>♞</span>
+                    <h3>التحليل قادم قريباً</h3>
+                    <p>سيتم إضافة أدوات التحليل المتقدم في تحديث لاحق.</p>
+                </div>
+
+            </section>
+
+
+
+            <!-- TRAINING PAGE -->
+            <section class="app-page" id="page-training">
+
+                <div class="page-heading">
+                    <span class="section-eyebrow">CHESS TRAINING</span>
+                    <h2>تدريب الشطرنج</h2>
+                    <p>طور مهاراتك وتعلم استراتيجيات جديدة.</p>
+                </div>
+
+                <div class="coming-soon-card">
+                    <span>✦</span>
+                    <h3>قسم التدريب قادم</h3>
+                    <p>سيتم إضافة التحديات والألغاز مستقبلاً.</p>
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- NEW GAME MODAL -->
+    <div class="modal-overlay hidden" id="newGameModal">
+
+        <div class="modal-box">
+
+            <button class="modal-close" data-close-modal>×</button>
+
+            <div class="modal-icon">♞</div>
+
+            <h2>مباراة جديدة</h2>
+
+            <p>هل تريد بدء مباراة جديدة؟</p>
+
+            <div class="modal-actions">
+
+                <button class="primary-button" id="confirmNewGame">
+                    ابدأ من جديد
+                </button>
+
+                <button class="secondary-button" data-close-modal>
+                    إلغاء
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PROMOTION MODAL -->
+    <div class="modal-overlay hidden" id="promotionModal">
+
+        <div class="modal-box promotion-box">
+
+            <h2>ترقية البيدق</h2>
+
+            <p>اختر القطعة التي تريد الترقية إليها.</p>
+
+            <div class="promotion-options">
+
+                <button data-promotion="q">♕</button>
+                <button data-promotion="r">♖</button>
+                <button data-promotion="b">♗</button>
+                <button data-promotion="n">♘</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- GAME RESULT MODAL -->
+    <div class="modal-overlay hidden" id="resultModal">
+
+        <div class="modal-box">
+
+            <div class="result-icon" id="resultIcon">♔</div>
+
+            <h2 id="resultTitle">انتهت المباراة</h2>
+
+            <p id="resultDescription">نتيجة المباراة</p>
+
+            <div class="result-statistics">
+
+                <div>
+                    <span>مدة المباراة</span>
+                    <strong id="resultDuration">00:00</strong>
+                </div>
+
+                <div>
+                    <span>عدد النقلات</span>
+                    <strong id="resultMoves">0</strong>
+                </div>
+
+            </div>
+
+            <button class="primary-button full-button" id="resultRestartButton">
+                مباراة جديدة
+            </button>
+
+            <button class="secondary-button full-button" id="resultHomeButton">
+                العودة للرئيسية
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-overlay hidden" id="settingsModal">
+
+        <div class="modal-box settings-box">
+
+            <button class="modal-close" data-close-modal>×</button>
+
+            <h2>إعدادات الشطرنج</h2>
+
+            <div class="settings-item">
+                <label for="pieceSoundSetting">أصوات القطع</label>
+                <input type="checkbox" id="pieceSoundSetting" checked>
+            </div>
+
+            <div class="settings-item">
+                <label for="highlightSetting">إظهار النقلات القانونية</label>
+                <input type="checkbox" id="highlightSetting" checked>
+            </div>
+
+            <div class="settings-item">
+                <label for="lastMoveSetting">تمييز آخر نقلة</label>
+                <input type="checkbox" id="lastMoveSetting" checked>
+            </div>
+
+            <div class="settings-item">
+                <label for="coordinatesSetting">إظهار الإحداثيات</label>
+                <input type="checkbox" id="coordinatesSetting" checked>
+            </div>
+
+            <button class="primary-button full-button" id="saveSettingsButton">
+                حفظ الإعدادات
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Notification -->
+    <div class="toast-container" id="toastContainer">
+    </div>
+
+
+
+    <!-- Footer -->
+    <footer class="chess-footer">
+
+        <div class="footer-brand">
+            <span>♞</span>
+            CHESS ARENA
+        </div>
+
+        <p>صُممت لتقديم تجربة شطرنج مميزة.</p>
+
+        <span class="footer-version">VERSION 1.0</span>
+
+    </footer>
+
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#151515">
+    <title>GuessIt</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px 15px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 35px;
+        }
+
+        .game-card {
+            background: #252525;
+            padding: 28px 20px;
+            margin: 22px 0;
+            border-radius: 16px;
+            border: 1px solid #353535;
+            transition: 0.25s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            border-color: #5865F2;
+        }
+
+        .game-card h2 {
+            margin-top: 0;
+            font-size: 25px;
+        }
+
+        .game-card p {
+            color: #bbb;
+            margin-bottom: 22px;
+        }
+
+        button {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 13px 28px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 17px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+            transform: scale(1.03);
+        }
+
+        .chess-card {
+            background: linear-gradient(
+                145deg,
+                #252525,
+                #202c27
+            );
+            border-color: #3c5948;
+        }
+
+        .chess-card:hover {
+            border-color: #65c58a;
+        }
+
+        .chess-card button {
+            background: #398b59;
+        }
+
+        .footer {
+            color: #666;
+            margin-top: 45px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 25px 12px;
+            }
+
+            h1 {
+                font-size: 31px;
+            }
+
+            .game-card {
+                padding: 23px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🎮 GuessIt</h1>
+
+        <h2>مرحباً بك في عالم الألعاب!</h2>
+
+        <p class="subtitle">
+            اختر اللعبة التي تريد لعبها
+        </p>
+
+        <!-- Chess Game -->
+        <div class="game-card chess-card">
+
+            <h2>♟️ الشطرنج</h2>
+
+            <p>
+                تحدَّ الذكاء الاصطناعي أو العب مع أصدقائك
+            </p>
+
+            <button onclick="location.href='chess.html'">
+                العب الشطرنج
+            </button>
+
+        </div>
+
+        <!-- Word Guessing -->
+        <div class="game-card">
+
+            <h2>🔤 تخمين الكلمات</h2>
+
+            <p>
+                اكتشف الكلمة من خلال التلميحات
+            </p>
+
+            <button onclick="location.href='words.html'">
+                العب الآن
+            </button>
+
+        </div>
+
+        <!-- Number Guessing -->
+        <div class="game-card">
+
+            <h2>🔢 تخمين الأرقام</h2>
+
+            <p>
+                حاول اكتشاف الرقم السري
+            </p>
+
+            <button onclick="location.href='numbers.html'">
+                العب الآن
+            </button>
+
+        </div>
+
+        <div class="footer">
+            GuessIt © 2026
+        </div>
+
+    </div>
+
+</body>
+</html>

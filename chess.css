@@ -1,0 +1,2428 @@
+/* =========================================================
+   CHESS ARENA — PREMIUM DESIGN SYSTEM
+   Version: 1.0
+   Main stylesheet
+========================================================= */
+
+/* =========================
+   01. ROOT VARIABLES
+========================= */
+
+:root {
+    --bg-main: #0c0f17;
+    --bg-secondary: #111622;
+    --bg-panel: #171d2a;
+    --bg-card: #1b2332;
+    --bg-card-hover: #222c3e;
+
+    --primary: #b7e06c;
+    --primary-hover: #c9ed87;
+    --primary-dark: #789d3c;
+
+    --text-primary: #f4f6fa;
+    --text-secondary: #a1aabb;
+    --text-muted: #697588;
+
+    --border: rgba(255,255,255,.075);
+    --border-active: rgba(183,224,108,.35);
+
+    --success: #69d69a;
+    --danger: #f16e78;
+    --warning: #e9bd68;
+    --info: #6da9e9;
+
+    --light-square: #e9d5b5;
+    --dark-square: #9b7355;
+
+    --sidebar-width: 245px;
+    --header-height: 82px;
+
+    --radius-small: 9px;
+    --radius-medium: 15px;
+    --radius-large: 22px;
+
+    --shadow-card:
+        0 12px 35px rgba(0,0,0,.22);
+
+    --transition:
+        .25s cubic-bezier(.2,.7,.3,1);
+}
+
+
+/* =========================
+   02. RESET
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Cairo', sans-serif;
+    overflow-x: hidden;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+input,
+select {
+    color: var(--text-primary);
+}
+
+::selection {
+    background: var(--primary);
+    color: #10150b;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================
+   03. APP BACKGROUND
+========================= */
+
+.chess-app {
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate;
+}
+
+.app-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at 80% 10%,
+            rgba(116,153,75,.09),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 5% 75%,
+            rgba(72,112,157,.08),
+            transparent 28%
+        ),
+        var(--bg-main);
+}
+
+
+/* =========================
+   04. HEADER
+========================= */
+
+.chess-header {
+    height: var(--header-height);
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 35px;
+
+    background: rgba(17,22,34,.94);
+    border-bottom: 1px solid var(--border);
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    backdrop-filter: blur(18px);
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 225px;
+}
+
+.brand-icon {
+    width: 45px;
+    height: 45px;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 32px;
+    color: var(--primary);
+
+    background: rgba(183,224,108,.1);
+    border: 1px solid var(--border-active);
+    border-radius: 13px;
+}
+
+.brand-details h1 {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1.3px;
+}
+
+.brand-details span {
+    font-size: 8px;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    direction: ltr;
+    display: block;
+}
+
+
+.header-navigation {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 11px 15px;
+
+    border-radius: 10px;
+
+    background: transparent;
+
+    color: var(--text-secondary);
+    font-size: 12px;
+
+    transition: var(--transition);
+}
+
+.nav-button span {
+    font-size: 19px;
+}
+
+.nav-button:hover,
+.nav-button.active {
+    background: rgba(183,224,108,.1);
+    color: var(--primary);
+}
+
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon-button {
+    width: 39px;
+    height: 39px;
+
+    border-radius: 11px;
+
+    background: var(--bg-card);
+    color: var(--text-secondary);
+
+    font-size: 18px;
+
+    transition: var(--transition);
+}
+
+.icon-button:hover {
+    color: var(--primary);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding-right: 13px;
+    border-right: 1px solid var(--border);
+}
+
+.user-avatar {
+    width: 39px;
+    height: 39px;
+
+    display: grid;
+    place-items: center;
+
+    background: linear-gradient(145deg,#526b40,#273d2d);
+    border-radius: 12px;
+
+    font-size: 23px;
+}
+
+.user-info strong {
+    display: block;
+    font-size: 11px;
+}
+
+.user-info span {
+    color: var(--primary);
+    font-size: 9px;
+}
+
+
+/* =========================
+   05. MAIN LAYOUT
+========================= */
+
+.main-container {
+    display: flex;
+    min-height: calc(100vh - var(--header-height));
+}
+
+
+/* =========================
+   06. SIDEBAR
+========================= */
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+
+    background: rgba(17,22,34,.78);
+    border-left: 1px solid var(--border);
+
+    padding: 28px 16px 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+}
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sidebar-title {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+
+    padding: 0 13px;
+    margin-bottom: 10px;
+}
+
+.sidebar-link {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 12px 14px;
+
+    text-align: right;
+
+    background: transparent;
+    border-radius: 11px;
+
+    color: var(--text-secondary);
+    font-size: 12px;
+
+    transition: var(--transition);
+}
+
+.sidebar-link span {
+    width: 24px;
+    text-align: center;
+    font-size: 19px;
+}
+
+.sidebar-link:hover {
+    background: rgba(255,255,255,.045);
+    color: white;
+}
+
+.sidebar-link.active {
+    background: rgba(183,224,108,.11);
+    color: var(--primary);
+
+    border-right: 3px solid var(--primary);
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 25px 0;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 30px;
+}
+
+.sidebar-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 11px;
+
+    background: rgba(105,214,154,.06);
+    border: 1px solid rgba(105,214,154,.12);
+    border-radius: 10px;
+
+    font-size: 10px;
+    color: var(--success);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+
+    display: inline-block;
+
+    background: var(--success);
+    border-radius: 50%;
+
+    box-shadow: 0 0 12px rgba(105,214,154,.5);
+}
+
+.version-label {
+    display: block;
+    margin-top: 15px;
+
+    text-align: center;
+
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+
+/* =========================
+   07. CONTENT AREA
+========================= */
+
+.content-area {
+    flex: 1;
+    min-width: 0;
+
+    padding: 35px;
+
+    overflow: hidden;
+}
+
+.app-page {
+    display: none;
+    animation: pageEnter .35s ease;
+}
+
+.app-page.active {
+    display: block;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(9px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================
+   08. WELCOME SECTION
+========================= */
+
+.welcome-section {
+    min-height: 300px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 35px 48px;
+
+    overflow: hidden;
+
+    border-radius: var(--radius-large);
+
+    border: 1px solid rgba(183,224,108,.12);
+
+    background:
+        linear-gradient(
+            105deg,
+            #1d2932 0%,
+            #19232d 45%,
+            #17202b 100%
+        );
+
+    position: relative;
+}
+
+.welcome-section::before {
+    content: "";
+
+    position: absolute;
+    width: 400px;
+    height: 400px;
+
+    border: 1px solid rgba(183,224,108,.07);
+    border-radius: 50%;
+
+    left: 40%;
+    top: -50%;
+
+    box-shadow:
+        0 0 0 45px rgba(183,224,108,.025),
+        0 0 0 90px rgba(183,224,108,.018);
+}
+
+.welcome-text {
+    position: relative;
+    z-index: 2;
+    max-width: 540px;
+}
+
+.section-eyebrow {
+    display: block;
+
+    color: var(--primary);
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+
+    margin-bottom: 12px;
+}
+
+.welcome-text h2 {
+    font-size: clamp(28px,4vw,43px);
+    font-weight: 900;
+    line-height: 1.5;
+}
+
+.welcome-text h2 span {
+    color: var(--primary);
+}
+
+.welcome-text p {
+    max-width: 410px;
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+    line-height: 2;
+
+    margin: 10px 0 24px;
+}
+
+.welcome-art {
+    width: 280px;
+    height: 230px;
+
+    display: grid;
+    place-items: center;
+
+    position: relative;
+}
+
+.art-glow {
+    position: absolute;
+
+    width: 170px;
+    height: 170px;
+
+    background: rgba(183,224,108,.15);
+    filter: blur(65px);
+    border-radius: 50%;
+}
+
+.hero-chess-piece {
+    position: relative;
+    z-index: 2;
+
+    font-size: 175px;
+
+    color: #d7e8bb;
+
+    text-shadow:
+        0 15px 25px rgba(0,0,0,.35),
+        0 0 50px rgba(183,224,108,.18);
+
+    animation: knightFloat 4s ease-in-out infinite;
+}
+
+@keyframes knightFloat {
+    0%,100% {
+        transform: translateY(0) rotate(-3deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(3deg);
+    }
+}
+
+.hero-decoration {
+    position: absolute;
+
+    bottom: 0;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 12px;
+
+    color: rgba(255,255,255,.12);
+}
+
+
+/* =========================
+   09. BUTTONS
+========================= */
+
+.primary-button,
+.secondary-button,
+.mode-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding: 12px 22px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    transition: var(--transition);
+}
+
+.primary-button {
+    color: #17200d;
+    background: var(--primary);
+    box-shadow: 0 5px 18px rgba(183,224,108,.12);
+}
+
+.primary-button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(183,224,108,.2);
+}
+
+.primary-button span {
+    font-size: 17px;
+}
+
+.secondary-button {
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+}
+
+.secondary-button:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-active);
+}
+
+.large-button {
+    width: 100%;
+    min-height: 52px;
+}
+
+.full-button {
+    width: 100%;
+}
+
+
+/* =========================
+   10. SECTION HEADINGS
+========================= */
+
+.section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+
+    margin: 38px 0 20px;
+}
+
+.section-heading h3,
+.page-heading h2 {
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.section-description {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.page-heading {
+    margin-bottom: 30px;
+}
+
+.page-heading h2 {
+    font-size: 27px;
+    margin-bottom: 5px;
+}
+
+.page-heading p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+
+/* =========================
+   11. GAME MODE CARDS
+========================= */
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 17px;
+}
+
+.mode-card {
+    min-height: 245px;
+
+    padding: 24px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    border-radius: var(--radius-medium);
+    border: 1px solid var(--border);
+
+    background: var(--bg-panel);
+
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-card::after {
+    content: "";
+
+    position: absolute;
+
+    width: 150px;
+    height: 150px;
+
+    left: -65px;
+    bottom: -80px;
+
+    background: rgba(183,224,108,.07);
+    border-radius: 50%;
+
+    filter: blur(30px);
+}
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--border-active);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+}
+
+.mode-icon {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 29px;
+
+    color: var(--primary);
+
+    background: rgba(183,224,108,.09);
+    border-radius: 13px;
+
+    margin-bottom: 18px;
+}
+
+.mode-tag {
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--primary);
+
+    margin-bottom: 7px;
+}
+
+.mode-card h3 {
+    font-size: 16px;
+    margin-bottom: 7px;
+}
+
+.mode-card p {
+    color: var(--text-secondary);
+    font-size: 10px;
+    line-height: 2;
+
+    margin-bottom: 17px;
+}
+
+.mode-button {
+    margin-top: auto;
+
+    background: transparent;
+    color: var(--primary);
+
+    padding: 7px 0;
+
+    font-size: 11px;
+}
+
+.mode-button:hover {
+    gap: 18px;
+}
+
+
+/* =========================
+   12. STATISTICS
+========================= */
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+.stat-card {
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    border-radius: 14px;
+    background: var(--bg-panel);
+
+    border: 1px solid var(--border);
+
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    border-color: var(--border-active);
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    font-size: 21px;
+    color: var(--primary);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.stat-card strong {
+    font-size: 25px;
+    font-weight: 900;
+    direction: ltr;
+    text-align: right;
+}
+
+
+/* =========================
+   13. CHESS GAME LAYOUT
+========================= */
+
+.game-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        minmax(260px,320px);
+
+    gap: 25px;
+
+    align-items: start;
+}
+
+.board-container {
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+.player-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 15px;
+
+    margin: 10px 0;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    transition: var(--transition);
+}
+
+.player-bar.active-player {
+    border-color: var(--border-active);
+    background: rgba(183,224,108,.06);
+}
+
+.player-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-avatar {
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 25px;
+    border-radius: 10px;
+}
+
+.black-avatar {
+    background: #252c38;
+    color: white;
+}
+
+.white-avatar {
+    background: #d8dce3;
+    color: #343b47;
+}
+
+.player-details strong {
+    display: block;
+    font-size: 11px;
+}
+
+.player-details span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+.player-clock {
+    padding: 8px 13px;
+
+    border-radius: 8px;
+
+    background: #242c3a;
+
+    font-size: 19px;
+    font-weight: 900;
+
+    font-family: monospace;
+    direction: ltr;
+
+    min-width: 90px;
+    text-align: center;
+}
+
+.player-clock.active-clock {
+    color: #15200b;
+    background: var(--primary);
+}
+
+.player-clock.low-time {
+    color: white;
+    background: var(--danger);
+    animation: clockWarning 1s infinite;
+}
+
+@keyframes clockWarning {
+    50% {
+        opacity: .65;
+    }
+}
+
+
+/* =========================
+   14. CHESS BOARD
+========================= */
+
+.board-wrapper {
+    position: relative;
+
+    width: min(100%,690px);
+
+    margin: 0 auto;
+
+    padding-left: 23px;
+    padding-bottom: 23px;
+}
+
+.chess-board {
+    width: 100%;
+
+    aspect-ratio: 1/1;
+
+    display: grid;
+    grid-template-columns: repeat(8,1fr);
+    grid-template-rows: repeat(8,1fr);
+
+    overflow: hidden;
+
+    border-radius: 4px;
+
+    border: 5px solid #252b36;
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,.4),
+        0 0 0 1px rgba(255,255,255,.08);
+
+    direction: ltr;
+
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.chess-square {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    place-items: center;
+
+    position: relative;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 0;
+
+    cursor: pointer;
+
+    transition: background .12s ease;
+}
+
+.chess-square.light {
+    background: var(--light-square);
+}
+
+.chess-square.dark {
+    background: var(--dark-square);
+}
+
+.chess-square:hover {
+    filter: brightness(1.09);
+}
+
+.chess-square.selected {
+    background: #baca45 !important;
+}
+
+.chess-square.last-move {
+    background-image: linear-gradient(
+        rgba(238,239,100,.38),
+        rgba(238,239,100,.38)
+    );
+}
+
+.chess-square.check-square {
+    background-image: radial-gradient(
+        circle,
+        rgba(255,40,40,.75),
+        rgba(255,40,40,.15) 70%
+    );
+}
+
+.chess-square.legal-target::after {
+    content: "";
+
+    position: absolute;
+
+    width: 25%;
+    height: 25%;
+
+    border-radius: 50%;
+
+    background: rgba(25,35,20,.38);
+}
+
+.chess-square.capture-target::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 4%;
+
+    border: 5px solid rgba(40,35,20,.35);
+    border-radius: 50%;
+}
+
+.chess-piece {
+    position: relative;
+    z-index: 2;
+
+    font-family:
+        "Segoe UI Symbol",
+        "DejaVu Sans",
+        serif;
+
+    font-size: clamp(24px,5vw,62px);
+    line-height: 1;
+
+    display: block;
+
+    pointer-events: none;
+
+    transition: transform .15s ease;
+}
+
+.chess-square:hover .chess-piece {
+    transform: scale(1.06);
+}
+
+.white-piece {
+    color: #fffdf3;
+
+    text-shadow:
+        1px 2px 2px rgba(0,0,0,.75),
+        -1px -1px 1px #333;
+}
+
+.black-piece {
+    color: #20232b;
+
+    text-shadow:
+        1px 1px 1px rgba(255,255,255,.45);
+}
+
+.board-coordinates {
+    position: absolute;
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    pointer-events: none;
+}
+
+.left-coordinates {
+    top: 5px;
+    bottom: 5px;
+    left: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.bottom-coordinates {
+    bottom: 0;
+    left: 23px;
+    right: 0;
+
+    display: flex;
+    justify-content: space-around;
+}
+
+
+/* =========================
+   15. GAME INFORMATION
+========================= */
+
+.game-information {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px;
+
+    margin-top: 18px;
+}
+
+.information-item {
+    padding: 13px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.information-item span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+.information-item strong {
+    color: var(--primary);
+
+    font-size: 17px;
+    font-family: monospace;
+
+    direction: ltr;
+}
+
+
+/* =========================
+   16. BOARD CONTROLS
+========================= */
+
+.board-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin-top: 15px;
+}
+
+.control-button {
+    flex: 1;
+
+    min-width: 90px;
+
+    padding: 11px 8px;
+
+    border-radius: 9px;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    transition: var(--transition);
+}
+
+.control-button:hover {
+    color: var(--primary);
+    border-color: var(--border-active);
+    background: var(--bg-card-hover);
+}
+
+.danger-button:hover {
+    color: var(--danger);
+    border-color: rgba(241,110,120,.4);
+}
+
+
+/* =========================
+   17. GAME SIDEBAR
+========================= */
+
+.game-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.game-panel,
+.position-card {
+    padding: 19px;
+
+    background: var(--bg-panel);
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 17px;
+}
+
+.panel-heading h3,
+.position-card h3 {
+    font-size: 14px;
+}
+
+.live-indicator {
+    padding: 4px 8px;
+
+    color: var(--success);
+    background: rgba(105,214,154,.09);
+
+    border-radius: 5px;
+
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.game-mode-information {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+
+    font-size: 10px;
+}
+
+.game-mode-information span {
+    color: var(--text-muted);
+}
+
+.game-mode-information strong {
+    color: var(--primary);
+}
+
+.game-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+}
+
+
+/* =========================
+   18. MOVE HISTORY
+========================= */
+
+.move-history {
+    min-height: 180px;
+    max-height: 350px;
+
+    overflow-y: auto;
+    direction: ltr;
+
+    scrollbar-width: thin;
+    scrollbar-color: #424d5d transparent;
+}
+
+.move-history::-webkit-scrollbar {
+    width: 5px;
+}
+
+.move-history::-webkit-scrollbar-thumb {
+    background: #424d5d;
+    border-radius: 10px;
+}
+
+.history-row {
+    display: grid;
+    grid-template-columns: 35px 1fr 1fr;
+
+    align-items: center;
+    gap: 8px;
+
+    padding: 9px 7px;
+
+    border-radius: 7px;
+
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.history-row:nth-child(even) {
+    background: rgba(255,255,255,.025);
+}
+
+.history-number {
+    color: var(--text-muted);
+}
+
+.history-move {
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.history-move.latest {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.empty-history {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 150px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.empty-history span {
+    font-size: 35px;
+    opacity: .4;
+    margin-bottom: 10px;
+}
+
+.game-panel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+
+/* =========================
+   19. POSITION INFORMATION
+========================= */
+
+.position-card h3 {
+    margin-bottom: 17px;
+}
+
+.position-row {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 10px;
+}
+
+.position-row:last-child {
+    border-bottom: none;
+}
+
+.position-row span {
+    color: var(--text-muted);
+}
+
+.position-row strong {
+    color: var(--primary);
+}
+
+
+/* =========================
+   20. COMPUTER SETUP
+========================= */
+
+.setup-card {
+    max-width: 850px;
+
+    margin: 0 auto;
+
+    padding: 28px;
+
+    background: var(--bg-panel);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-large);
+}
+
+.setup-section {
+    margin-bottom: 30px;
+}
+
+.setup-section h3 {
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 12px;
+}
+
+.difficulty-card {
+    padding: 18px 8px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+
+    background: var(--bg-card);
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    transition: var(--transition);
+}
+
+.difficulty-card span {
+    font-size: 26px;
+    color: var(--primary);
+}
+
+.difficulty-card strong {
+    font-size: 11px;
+}
+
+.difficulty-card small {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.difficulty-card.active,
+.difficulty-card:hover {
+    background: rgba(183,224,108,.09);
+    border-color: var(--border-active);
+}
+
+.color-selection,
+.time-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.color-option,
+.time-option {
+    flex: 1;
+
+    min-width: 85px;
+
+    padding: 12px;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    color: var(--text-secondary);
+    font-size: 11px;
+
+    transition: var(--transition);
+}
+
+.color-option span {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.color-option.active,
+.time-option.active {
+    color: var(--primary);
+    background: rgba(183,224,108,.09);
+    border-color: var(--border-active);
+}
+
+.color-option:hover,
+.time-option:hover {
+    border-color: var(--border-active);
+}
+
+
+/* =========================
+   21. PRIVATE ROOMS
+========================= */
+
+.rooms-layout {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 20px;
+}
+
+.room-card {
+    padding: 27px;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius-large);
+
+    transition: var(--transition);
+}
+
+.room-card:hover {
+    border-color: var(--border-active);
+    transform: translateY(-3px);
+}
+
+.room-icon {
+    width: 55px;
+    height: 55px;
+
+    display: grid;
+    place-items: center;
+
+    background: rgba(183,224,108,.09);
+
+    color: var(--primary);
+
+    font-size: 34px;
+
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.room-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.room-card p {
+    color: var(--text-secondary);
+
+    font-size: 11px;
+    line-height: 2;
+
+    margin-bottom: 20px;
+}
+
+.room-options,
+.room-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    margin-bottom: 15px;
+}
+
+.room-options label,
+.room-input-container label {
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.room-options select,
+.room-input-container input {
+    width: 100%;
+
+    padding: 12px;
+
+    border-radius: 9px;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+
+    font-size: 11px;
+}
+
+.room-options select:focus,
+.room-input-container input:focus {
+    border-color: var(--primary);
+}
+
+.room-options select option {
+    background: var(--bg-card);
+}
+
+.created-room-card {
+    max-width: 600px;
+
+    margin: 25px auto;
+    padding: 30px;
+
+    text-align: center;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-large);
+}
+
+.room-success-icon {
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto 15px;
+
+    display: grid;
+    place-items: center;
+
+    background: rgba(105,214,154,.1);
+    color: var(--success);
+
+    font-size: 25px;
+    border-radius: 50%;
+}
+
+.created-room-card h3 {
+    font-size: 18px;
+}
+
+.created-room-card p {
+    margin: 8px 0 17px;
+
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.room-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding: 15px;
+
+    background: var(--bg-card);
+    border: 1px dashed var(--border-active);
+    border-radius: 12px;
+}
+
+.room-code-display strong {
+    font-size: 25px;
+    font-family: monospace;
+    letter-spacing: 4px;
+    color: var(--primary);
+    direction: ltr;
+}
+
+.room-code-display button {
+    padding: 8px 13px;
+
+    color: #17200d;
+    background: var(--primary);
+
+    border-radius: 7px;
+    font-size: 10px;
+}
+
+.room-waiting-status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 18px;
+
+    color: var(--success);
+    font-size: 10px;
+}
+
+
+/* =========================
+   22. HISTORY PAGE
+========================= */
+
+.history-card {
+    padding: 24px;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius-medium);
+}
+
+.history-card h3 {
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.expanded-stats {
+    margin-bottom: 25px;
+}
+
+.coming-soon-card {
+    min-height: 280px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    text-align: center;
+
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-large);
+}
+
+.coming-soon-card span {
+    font-size: 60px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.coming-soon-card h3 {
+    font-size: 18px;
+    margin-bottom: 9px;
+}
+
+.coming-soon-card p {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+
+/* =========================
+   23. MODALS
+========================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0,0,0,.75);
+
+    backdrop-filter: blur(8px);
+
+    animation: modalFade .2s ease;
+}
+
+@keyframes modalFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-box {
+    width: min(100%,430px);
+
+    padding: 30px;
+
+    background: #1a2230;
+
+    border: 1px solid var(--border-active);
+    border-radius: 20px;
+
+    box-shadow: 0 25px 70px rgba(0,0,0,.5);
+
+    text-align: center;
+
+    position: relative;
+
+    animation: modalEnter .25s ease;
+}
+
+@keyframes modalEnter {
+    from {
+        transform: translateY(15px) scale(.97);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-close {
+    position: absolute;
+
+    top: 13px;
+    left: 15px;
+
+    width: 30px;
+    height: 30px;
+
+    border-radius: 8px;
+
+    color: var(--text-secondary);
+    background: var(--bg-card);
+
+    font-size: 19px;
+}
+
+.modal-icon,
+.result-icon {
+    font-size: 50px;
+    color: var(--primary);
+
+    margin-bottom: 12px;
+}
+
+.modal-box h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.modal-box p {
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.promotion-options {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 10px;
+}
+
+.promotion-options button {
+    padding: 15px 5px;
+
+    color: var(--primary);
+    background: var(--bg-card);
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    font-size: 35px;
+}
+
+.promotion-options button:hover {
+    background: rgba(183,224,108,.1);
+    border-color: var(--primary);
+}
+
+.result-statistics {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.result-statistics div {
+    padding: 14px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    background: var(--bg-card);
+    border-radius: 10px;
+}
+
+.result-statistics span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+.result-statistics strong {
+    color: var(--primary);
+    font-size: 18px;
+    direction: ltr;
+}
+
+
+/* =========================
+   24. SETTINGS
+========================= */
+
+.settings-box {
+    text-align: right;
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 11px;
+}
+
+.settings-item input {
+    width: 18px;
+    height: 18px;
+
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.settings-box .primary-button {
+    margin-top: 20px;
+}
+
+
+/* =========================
+   25. TOAST NOTIFICATIONS
+========================= */
+
+.toast-container {
+    position: fixed;
+
+    bottom: 25px;
+    left: 25px;
+
+    z-index: 2000;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 220px;
+    max-width: 350px;
+
+    padding: 13px 18px;
+
+    background: #222d3b;
+
+    border: 1px solid var(--border-active);
+    border-radius: 11px;
+
+    color: var(--text-primary);
+
+    font-size: 11px;
+
+    box-shadow: var(--shadow-card);
+
+    animation: toastEnter .3s ease;
+}
+
+.toast.success {
+    border-right: 3px solid var(--success);
+}
+
+.toast.error {
+    border-right: 3px solid var(--danger);
+}
+
+.toast.warning {
+    border-right: 3px solid var(--warning);
+}
+
+@keyframes toastEnter {
+    from {
+        transform: translateY(15px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+
+/* =========================
+   26. FOOTER
+========================= */
+
+.chess-footer {
+    min-height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px 35px;
+
+    background: rgba(17,22,34,.8);
+    border-top: 1px solid var(--border);
+}
+
+.footer-brand {
+    color: var(--primary);
+
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.footer-brand span {
+    font-size: 20px;
+}
+
+.chess-footer p {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.footer-version {
+    color: var(--text-muted);
+    font-size: 9px;
+    letter-spacing: 1px;
+}
+
+
+/* =========================
+   27. RESPONSIVE TABLET
+========================= */
+
+@media (max-width: 1150px) {
+
+    :root {
+        --sidebar-width: 210px;
+    }
+
+    .content-area {
+        padding: 25px;
+    }
+
+    .header-navigation {
+        display: none;
+    }
+
+    .game-layout {
+        grid-template-columns: minmax(0,1fr) 270px;
+        gap: 15px;
+    }
+
+    .mode-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+
+    .welcome-art {
+        width: 210px;
+    }
+
+    .hero-chess-piece {
+        font-size: 145px;
+    }
+}
+
+
+/* =========================
+   28. RESPONSIVE MOBILE
+========================= */
+
+@media (max-width: 760px) {
+
+    :root {
+        --header-height: 67px;
+        --sidebar-width: 0px;
+    }
+
+    .chess-header {
+        padding: 0 13px;
+    }
+
+    .brand-icon {
+        width: 37px;
+        height: 37px;
+        font-size: 25px;
+    }
+
+    .brand-details h1 {
+        font-size: 12px;
+    }
+
+    .brand-details span {
+        font-size: 6px;
+    }
+
+    .header-brand {
+        min-width: auto;
+    }
+
+    .header-actions {
+        gap: 7px;
+    }
+
+    .icon-button {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .user-profile {
+        padding-right: 7px;
+    }
+
+    .user-avatar {
+        width: 33px;
+        height: 33px;
+        font-size: 20px;
+    }
+
+    .user-info {
+        display: none;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .content-area {
+        padding: 17px 12px 30px;
+    }
+
+    .welcome-section {
+        min-height: 260px;
+        padding: 25px 20px;
+    }
+
+    .welcome-text {
+        max-width: 100%;
+    }
+
+    .welcome-text h2 {
+        font-size: 27px;
+    }
+
+    .welcome-text p {
+        font-size: 10px;
+        max-width: 250px;
+    }
+
+    .welcome-art {
+        position: absolute;
+
+        left: -30px;
+        bottom: 0;
+
+        width: 140px;
+        height: 180px;
+
+        opacity: .3;
+    }
+
+    .hero-chess-piece {
+        font-size: 120px;
+    }
+
+    .section-heading {
+        margin: 28px 0 15px;
+    }
+
+    .section-heading h3 {
+        font-size: 17px;
+    }
+
+    .section-description {
+        display: none;
+    }
+
+    .mode-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .mode-card {
+        min-height: 210px;
+        padding: 19px;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card strong {
+        font-size: 22px;
+    }
+
+    .game-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .board-container {
+        width: 100%;
+    }
+
+    .board-wrapper {
+        width: 100%;
+        padding-left: 19px;
+        padding-bottom: 20px;
+    }
+
+    .chess-board {
+        border-width: 3px;
+    }
+
+    .chess-piece {
+        font-size: clamp(25px,9vw,51px);
+    }
+
+    .board-coordinates {
+        font-size: 8px;
+    }
+
+    .bottom-coordinates {
+        left: 19px;
+    }
+
+    .game-information {
+        gap: 6px;
+    }
+
+    .information-item {
+        padding: 9px 4px;
+    }
+
+    .information-item span {
+        font-size: 8px;
+    }
+
+    .information-item strong {
+        font-size: 14px;
+    }
+
+    .board-controls {
+        gap: 6px;
+    }
+
+    .control-button {
+        min-width: 70px;
+        font-size: 9px;
+        padding: 10px 5px;
+    }
+
+    .game-sidebar {
+        margin-top: 15px;
+    }
+
+    .rooms-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .room-card {
+        padding: 20px;
+    }
+
+    .difficulty-grid {
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .setup-card {
+        padding: 18px;
+    }
+
+    .page-heading h2 {
+        font-size: 22px;
+    }
+
+    .chess-footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .toast-container {
+        left: 12px;
+        right: 12px;
+        bottom: 15px;
+    }
+
+    .toast {
+        max-width: 100%;
+        width: 100%;
+    }
+
+}
+
+
+/* =========================
+   29. SMALL MOBILE
+========================= */
+
+@media (max-width: 380px) {
+
+    .brand-details span {
+        display: none;
+    }
+
+    .welcome-text h2 {
+        font-size: 23px;
+    }
+
+    .board-wrapper {
+        padding-left: 16px;
+        padding-bottom: 18px;
+    }
+
+    .bottom-coordinates {
+        left: 16px;
+    }
+
+    .chess-piece {
+        font-size: 24px;
+    }
+
+    .player-clock {
+        min-width: 73px;
+        font-size: 16px;
+    }
+
+    .control-button {
+        min-width: 65px;
+    }
+
+}
+
+
+/* =========================
+   30. ACCESSIBILITY
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+
+}
+
+
+/* =========================
+   31. PRINT
+========================= */
+
+@media print {
+
+    .chess-header,
+    .sidebar,
+    .board-controls,
+    .chess-footer {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    .content-area {
+        padding: 0;
+    }
+
+}
