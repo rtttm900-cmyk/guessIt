@@ -1,25 +1,14 @@
 /* ============================================================
    ROYAL CHESS — ULTIMATE GAME ENGINE
-   VERSION: 3.0
+   VERSION: 3.1
    ENGINE: CHESS.JS 0.10.3
-   FEATURES:
-   - Legal Chess Movement
-   - Interactive Chessboard
-   - Move History
-   - AI Opponent
-   - Minimax Search
-   - Game Statistics
-   - Undo / Restart
-   - Board Rotation
-   - Check / Checkmate Detection
-   - Promotion / Castling / En Passant
    ============================================================ */
 
 "use strict";
 
 /* ============================================================
-   01 — CONFIGURATION
-   ============================================================ */
+01 — CONFIGURATION
+============================================================ */
 
 const ROYAL_CONFIG = {
     animationDelay: 350,
@@ -65,8 +54,8 @@ const PIECE_VALUES = {
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 /* ============================================================
-   02 — GLOBAL GAME STATE
-   ============================================================ */
+02 — GLOBAL GAME STATE
+============================================================ */
 
 let game = new Chess();
 
@@ -89,8 +78,8 @@ let playerClock = {
 let matchStatistics = loadStatistics();
 
 /* ============================================================
-   03 — DOM ELEMENTS
-   ============================================================ */
+03 — DOM ELEMENTS
+============================================================ */
 
 const DOM = {
     board: document.getElementById("board"),
@@ -134,12 +123,43 @@ const DOM = {
     joinRoomBtn: document.getElementById("joinRoomBtn"),
     roomCode: document.getElementById("roomCode"),
 
+    exitGameView: document.getElementById("exitGameView"),
+
     toast: document.getElementById("royal-toast")
 };
 
 /* ============================================================
-   04 — STORAGE SYSTEM
-   ============================================================ */
+04 — GAME VIEW MANAGEMENT
+============================================================ */
+
+function enterGameView() {
+    document.body.classList.add("royal-game-mode");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "auto"
+    });
+}
+
+function exitGameView() {
+    document.body.classList.remove("royal-game-mode");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+if (DOM.exitGameView) {
+    DOM.exitGameView.addEventListener(
+        "click",
+        exitGameView
+    );
+}
+
+/* ============================================================
+05 — STORAGE SYSTEM
+============================================================ */
 
 function loadStatistics() {
     const defaultData = {
@@ -202,8 +222,8 @@ function updateStatisticsUI() {
 }
 
 /* ============================================================
-   05 — NOTIFICATION SYSTEM
-   ============================================================ */
+06 — NOTIFICATION SYSTEM
+============================================================ */
 
 function showToast(message, duration = 2600) {
     if (!DOM.toast) return;
@@ -219,8 +239,8 @@ function showToast(message, duration = 2600) {
 }
 
 /* ============================================================
-   06 — SOUND ENGINE
-   ============================================================ */
+07 — SOUND ENGINE
+============================================================ */
 
 function playSound(type = "move") {
     if (!ROYAL_CONFIG.soundEnabled) return;
@@ -282,8 +302,8 @@ function playSound(type = "move") {
 }
 
 /* ============================================================
-   07 — BOARD GENERATION
-   ============================================================ */
+08 — BOARD GENERATION
+============================================================ */
 
 function createBoard() {
     if (!DOM.board) return;
@@ -342,8 +362,7 @@ function createBoard() {
                     ? columnIndex === 0
                     : columnIndex === 7;
 
-            const showFile =
-                rowIndex === 7;
+            const showFile = rowIndex === 7;
 
             if (showRank || showFile) {
                 const coordinate =
@@ -369,8 +388,8 @@ function createBoard() {
 }
 
 /* ============================================================
-   08 — BOARD HIGHLIGHTS
-   ============================================================ */
+09 — BOARD HIGHLIGHTS
+============================================================ */
 
 function updateBoardHighlights() {
     if (!DOM.board) return;
@@ -419,7 +438,6 @@ function updateBoardHighlights() {
 
     if (game.in_check()) {
         const turn = game.turn();
-
         const boardState = game.board();
 
         boardState.forEach((row, rowIndex) => {
@@ -432,8 +450,7 @@ function updateBoardHighlights() {
                     const file = FILES[columnIndex];
                     const rank = 8 - rowIndex;
 
-                    const kingSquare =
-                        `${file}${rank}`;
+                    const kingSquare = `${file}${rank}`;
 
                     const kingElement =
                         DOM.board.querySelector(
@@ -450,8 +467,8 @@ function updateBoardHighlights() {
 }
 
 /* ============================================================
-   09 — SQUARE INTERACTION
-   ============================================================ */
+10 — SQUARE INTERACTION
+============================================================ */
 
 function handleSquareClick(square) {
     if (gameFinished || aiThinking) return;
@@ -504,7 +521,6 @@ function selectSquare(square) {
     const piece = game.get(square);
 
     if (!piece) return;
-
     if (piece.color !== game.turn()) return;
 
     selectedSquare = square;
@@ -525,8 +541,8 @@ function clearSelection() {
 }
 
 /* ============================================================
-   10 — MOVE EXECUTION
-   ============================================================ */
+11 — MOVE EXECUTION
+============================================================ */
 
 function executeMove(from, to, selectedMove = null) {
     if (gameFinished) return false;
@@ -547,9 +563,7 @@ function executeMove(from, to, selectedMove = null) {
             destinationRank === 8 ||
             destinationRank === 1
         ) {
-            const promotion = choosePromotion();
-
-            moveOptions.promotion = promotion;
+            moveOptions.promotion = choosePromotion();
         }
     }
 
@@ -616,8 +630,8 @@ function choosePromotion() {
 }
 
 /* ============================================================
-   11 — GAME REFRESH
-   ============================================================ */
+12 — GAME REFRESH
+============================================================ */
 
 function refreshGame() {
     createBoard();
@@ -651,9 +665,7 @@ function updateMatchInformation() {
         DOM.matchType.textContent =
             currentMode === "computer"
                 ? "ضد الكمبيوتر"
-                : currentMode === "friend"
-                    ? "غرفة صديق"
-                    : "محلية";
+                : "محلية";
     }
 
     if (DOM.matchState) {
@@ -681,8 +693,8 @@ function updateMatchInformation() {
 }
 
 /* ============================================================
-   12 — MOVE HISTORY
-   ============================================================ */
+13 — MOVE HISTORY
+============================================================ */
 
 function updateHistory() {
     if (!DOM.history) return;
@@ -706,27 +718,23 @@ function updateHistory() {
         index < history.length;
         index += 2
     ) {
-        const row =
-            document.createElement("div");
+        const row = document.createElement("div");
 
         row.className = "royal-move-row";
 
-        const number =
-            document.createElement("span");
+        const number = document.createElement("span");
 
         number.className = "royal-move-number";
 
         number.textContent =
             `${Math.floor(index / 2) + 1}.`;
 
-        const whiteMove =
-            document.createElement("span");
+        const whiteMove = document.createElement("span");
 
         whiteMove.textContent =
             history[index] || "—";
 
-        const blackMove =
-            document.createElement("span");
+        const blackMove = document.createElement("span");
 
         blackMove.textContent =
             history[index + 1] || "—";
@@ -740,13 +748,12 @@ function updateHistory() {
         DOM.history.appendChild(row);
     }
 
-    DOM.history.scrollTop =
-        DOM.history.scrollHeight;
+    DOM.history.scrollTop = DOM.history.scrollHeight;
 }
 
 /* ============================================================
-   13 — GAME STATUS
-   ============================================================ */
+14 — GAME STATUS
+============================================================ */
 
 function updateGameStatus() {
     if (!DOM.status) return;
@@ -806,16 +813,14 @@ function updateGameStatus() {
 }
 
 /* ============================================================
-   14 — GAME FINISH
-   ============================================================ */
+15 — GAME FINISH
+============================================================ */
 
 function finishGame() {
     if (gameFinished) return;
 
     gameFinished = true;
     aiThinking = false;
-
-    const history = game.history();
 
     let result = "draw";
 
@@ -872,8 +877,8 @@ function finishGame() {
 }
 
 /* ============================================================
-   15 — RESTART GAME
-   ============================================================ */
+16 — RESTART GAME
+============================================================ */
 
 function restartGame() {
     const confirmed = window.confirm(
@@ -905,8 +910,8 @@ function restartGame() {
 }
 
 /* ============================================================
-   16 — UNDO SYSTEM
-   ============================================================ */
+17 — UNDO SYSTEM
+============================================================ */
 
 function undoMove() {
     if (aiThinking) return;
@@ -957,8 +962,8 @@ function undoMove() {
 }
 
 /* ============================================================
-   17 — BOARD ROTATION
-   ============================================================ */
+18 — BOARD ROTATION
+============================================================ */
 
 function flipBoard() {
     ROYAL_CONFIG.boardFlipped =
@@ -974,8 +979,8 @@ function flipBoard() {
 }
 
 /* ============================================================
-   18 — AI POSITION EVALUATION
-   ============================================================ */
+19 — AI POSITION EVALUATION
+============================================================ */
 
 function evaluatePosition(color) {
     const board = game.board();
@@ -1028,8 +1033,8 @@ function evaluatePosition(color) {
 }
 
 /* ============================================================
-   19 — AI SEARCH ENGINE
-   ============================================================ */
+20 — AI SEARCH ENGINE
+============================================================ */
 
 function minimax(depth, alpha, beta, maximizingColor) {
     if (depth <= 0 || game.game_over()) {
@@ -1122,8 +1127,8 @@ function minimax(depth, alpha, beta, maximizingColor) {
 }
 
 /* ============================================================
-   20 — AI MOVE SELECTION
-   ============================================================ */
+21 — AI MOVE SELECTION
+============================================================ */
 
 function getBestComputerMove() {
     const moves = game.moves({
@@ -1172,8 +1177,8 @@ function getBestComputerMove() {
 }
 
 /* ============================================================
-   21 — COMPUTER MOVE EXECUTION
-   ============================================================ */
+22 — COMPUTER MOVE EXECUTION
+============================================================ */
 
 function scheduleComputerMove() {
     if (
@@ -1242,8 +1247,8 @@ function scheduleComputerMove() {
 }
 
 /* ============================================================
-   22 — COMPUTER DIFFICULTY
-   ============================================================ */
+23 — COMPUTER DIFFICULTY
+============================================================ */
 
 function setDifficulty(level) {
     const difficulty = Number(level);
@@ -1263,8 +1268,8 @@ function setDifficulty(level) {
 }
 
 /* ============================================================
-   23 — GAME MODES
-   ============================================================ */
+24 — GAME MODES
+============================================================ */
 
 function startLocalGame() {
     currentMode = "local";
@@ -1272,6 +1277,8 @@ function startLocalGame() {
     ROYAL_CONFIG.aiEnabled = false;
 
     resetBoardState();
+
+    enterGameView();
 
     showToast("بدأت مباراة محلية جديدة.");
 }
@@ -1293,6 +1300,8 @@ function startComputerGame() {
     );
 
     resetBoardState();
+
+    enterGameView();
 
     showToast("تم إنشاء مباراة ضد الكمبيوتر.");
 
@@ -1318,8 +1327,8 @@ function resetBoardState() {
 }
 
 /* ============================================================
-   24 — MODAL MANAGEMENT
-   ============================================================ */
+25 — MODAL MANAGEMENT
+============================================================ */
 
 function openModal(modal) {
     if (!modal) return;
@@ -1341,8 +1350,7 @@ function closeAllModals() {
 document.querySelectorAll("[data-close]").forEach(
     button => {
         button.addEventListener("click", () => {
-            const modalId =
-                button.dataset.close;
+            const modalId = button.dataset.close;
 
             closeModal(
                 document.getElementById(modalId)
@@ -1368,10 +1376,15 @@ document.addEventListener("keydown", event => {
 });
 
 /* ============================================================
-   25 — SIDEBAR NAVIGATION
-   ============================================================ */
+26 — SIDEBAR NAVIGATION
+============================================================ */
 
 function handleNavigation(page) {
+    if (page === "friend") {
+        showToast("اللعب مع الأصدقاء — قريباً.");
+        return;
+    }
+
     document.querySelectorAll(".royal-nav").forEach(
         button => {
             button.classList.toggle(
@@ -1383,6 +1396,7 @@ function handleNavigation(page) {
 
     switch (page) {
         case "play":
+            exitGameView();
             showToast("أنت في ساحة اللعب الملكية.");
             break;
 
@@ -1392,10 +1406,6 @@ function handleNavigation(page) {
 
         case "computer":
             openModal(DOM.computerModal);
-            break;
-
-        case "friend":
-            openModal(DOM.friendModal);
             break;
 
         case "profile":
@@ -1420,14 +1430,16 @@ function handleNavigation(page) {
 document.querySelectorAll(".royal-nav").forEach(
     button => {
         button.addEventListener("click", () => {
+            if (button.disabled) return;
+
             handleNavigation(button.dataset.page);
         });
     }
 );
 
 /* ============================================================
-   26 — BUTTON EVENTS
-   ============================================================ */
+27 — BUTTON EVENTS
+============================================================ */
 
 if (DOM.startBtn) {
     DOM.startBtn.addEventListener(
@@ -1505,10 +1517,12 @@ if (DOM.resignBtn) {
             updateStatisticsUI();
             updateMatchInformation();
 
-            DOM.status.textContent =
-                `استسلم اللاعب. الفائز: ${winner}.`;
+            if (DOM.status) {
+                DOM.status.textContent =
+                    `استسلم اللاعب. الفائز: ${winner}.`;
 
-            DOM.status.classList.add("finished");
+                DOM.status.classList.add("finished");
+            }
 
             showToast("انتهت المباراة بالاستسلام.");
         }
@@ -1516,8 +1530,8 @@ if (DOM.resignBtn) {
 }
 
 /* ============================================================
-   27 — SOUND CONTROL
-   ============================================================ */
+28 — SOUND CONTROL
+============================================================ */
 
 if (DOM.soundToggle) {
     DOM.soundToggle.addEventListener(
@@ -1545,8 +1559,8 @@ if (DOM.soundToggle) {
 }
 
 /* ============================================================
-   28 — FULLSCREEN
-   ============================================================ */
+29 — FULLSCREEN
+============================================================ */
 
 if (DOM.fullscreenBtn) {
     DOM.fullscreenBtn.addEventListener(
@@ -1566,31 +1580,41 @@ if (DOM.fullscreenBtn) {
 }
 
 /* ============================================================
-   29 — FRIEND ROOM INTERFACE
-   ============================================================ */
+30 — FRIEND ROOM INTERFACE
+============================================================ */
+
+// اللعب عبر الإنترنت غير مفعّل حالياً.
+// نحتفظ بعناصر الغرف للتطوير المستقبلي.
 
 if (DOM.joinRoomBtn) {
-    DOM.joinRoomBtn.addEventListener(
-        "click",
-        () => {
-            const roomCode =
-                DOM.roomCode.value.trim();
+    DOM.joinRoomBtn.disabled = true;
+}
 
-            if (!roomCode) {
-                showToast("أدخل رمز الغرفة أولاً.");
-                return;
-            }
+if (DOM.roomCode) {
+    DOM.roomCode.disabled = true;
+}
 
-            showToast(
-                "نظام الغرف يحتاج ربط خدمة اتصال ومزامنة."
-            );
-        }
+const friendNavigationButton =
+    document.querySelector('[data-page="friend"]');
+
+if (friendNavigationButton) {
+    friendNavigationButton.disabled = true;
+    friendNavigationButton.setAttribute(
+        "aria-disabled",
+        "true"
     );
+
+    const tag =
+        friendNavigationButton.querySelector(".nav-tag");
+
+    if (tag) {
+        tag.textContent = "قريباً";
+    }
 }
 
 /* ============================================================
-   30 — KEYBOARD SHORTCUTS
-   ============================================================ */
+31 — KEYBOARD SHORTCUTS
+============================================================ */
 
 document.addEventListener("keydown", event => {
     if (
@@ -1615,16 +1639,14 @@ document.addEventListener("keydown", event => {
         flipBoard();
     }
 
-    if (
-        event.key === "Escape"
-    ) {
+    if (event.key === "Escape") {
         clearSelection();
     }
 });
 
 /* ============================================================
-   31 — GAME INITIALIZATION
-   ============================================================ */
+32 — GAME INITIALIZATION
+============================================================ */
 
 function initializeRoyalChess() {
     if (typeof Chess !== "function") {
@@ -1687,5 +1709,5 @@ if (document.readyState === "loading") {
 }
 
 /* ============================================================
-   END OF ROYAL CHESS ENGINE
-   ============================================================ */
+END OF ROYAL CHESS ENGINE
+============================================================ */
