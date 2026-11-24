@@ -13,125 +13,10 @@
 
     <link rel="stylesheet" href="Chess.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-
-    <style>
-        /* شاشة اللعب المستقلة */
-        #exitGameView {
-            display: none;
-            margin-bottom: 15px;
-            padding: 10px 18px;
-            color: #f0d49a;
-            background: #172338;
-            border: 1px solid rgba(216,181,111,.3);
-            border-radius: 8px;
-            font-family: Cairo, sans-serif;
-            cursor: pointer;
-        }
-
-        body.royal-game-mode .royal-sidebar,
-        body.royal-game-mode .royal-topbar,
-        body.royal-game-mode .royal-hero,
-        body.royal-game-mode .royal-stat-grid,
-        body.royal-game-mode .royal-footer {
-            display: none !important;
-        }
-
-        body.royal-game-mode #exitGameView {
-            display: inline-block;
-        }
-
-        body.royal-game-mode .royal-app {
-            min-height: 100vh;
-        }
-
-        body.royal-game-mode .royal-main {
-            width: 100%;
-            max-width: 1500px;
-            padding: 18px;
-            margin: 0 auto;
-        }
-
-        body.royal-game-mode .royal-game-layout {
-            grid-template-columns: minmax(0, 1.5fr) minmax(250px, .7fr);
-            align-items: start;
-        }
-
-        body.royal-game-mode .royal-board-frame {
-            max-width: min(590px, 75vh);
-        }
-
-        /* ألوان مربعات الشطرنج */
-        #board .square.light,
-        #board button.square.light,
-        #board .light {
-            background: #ffffff !important;
-        }
-
-        #board .square.dark,
-        #board button.square.dark,
-        #board .dark {
-            background: #111111 !important;
-        }
-
-        /* وضوح القطع البيضاء والسوداء */
-        #board .square.piece-w {
-            color: #ffffff !important;
-            text-shadow:
-                1px 1px 2px #000,
-                -1px -1px 2px #000,
-                1px -1px 2px #000,
-                -1px 1px 2px #000;
-        }
-
-        #board .square.piece-b {
-            color: #111111 !important;
-            text-shadow:
-                1px 1px 2px #fff,
-                -1px -1px 2px #fff,
-                1px -1px 2px #fff,
-                -1px 1px 2px #fff;
-        }
-
-        /* تعطيل خيار الأونلاين */
-        .royal-nav:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .royal-nav:disabled:hover {
-            transform: none !important;
-        }
-
-        #roomCode:disabled,
-        #joinRoomBtn:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-        }
-
-        @media(max-width:800px) {
-            body.royal-game-mode .royal-game-layout {
-                grid-template-columns: 1fr;
-            }
-
-            body.royal-game-mode .royal-right-column {
-                display: none;
-            }
-
-            body.royal-game-mode .royal-main {
-                padding: 10px;
-            }
-
-            body.royal-game-mode .royal-board-frame {
-                max-width: min(590px, 82vw);
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-<!-- شاشة التحميل -->
 <div id="royal-loader">
     <div class="loader-crown">♛</div>
     <div class="loader-title">ROYAL CHESS</div>
@@ -142,7 +27,6 @@
 
 <div class="royal-app">
 
-    <!-- القائمة الجانبية -->
     <aside class="royal-sidebar">
 
         <div class="royal-brand">
@@ -165,7 +49,7 @@
             <span class="royal-nav-text">ضد الكمبيوتر</span>
         </button>
 
-        <button class="royal-nav" data-page="friend" disabled title="قريباً">
+        <button class="royal-nav" data-page="friend" disabled aria-disabled="true" title="قريباً">
             <span class="royal-nav-icon">♙</span>
             <span class="royal-nav-text">اللعب مع صديق</span>
             <span class="nav-tag">قريباً</span>
@@ -210,7 +94,6 @@
         </div>
     </aside>
 
-    <!-- المحتوى الرئيسي -->
     <main class="royal-main">
 
         <header class="royal-topbar">
@@ -238,7 +121,6 @@
             </div>
         </header>
 
-        <!-- الواجهة الرئيسية -->
         <section class="royal-hero">
 
             <div class="royal-hero-content">
@@ -272,7 +154,6 @@
 
         </section>
 
-        <!-- الإحصائيات -->
         <section class="royal-stat-grid">
 
             <div class="royal-stat-card">
@@ -301,12 +182,10 @@
 
         </section>
 
-        <!-- زر العودة من شاشة اللعب -->
-        <button id="exitGameView" type="button">
+        <button class="royal-secondary-btn" id="exitGameView" type="button" hidden>
             ← العودة إلى القائمة الرئيسية
         </button>
 
-        <!-- ساحة الشطرنج -->
         <section class="royal-game-layout">
 
             <div class="royal-panel">
@@ -320,7 +199,6 @@
                     <span class="royal-live-badge">LIVE BOARD</span>
                 </div>
 
-                <!-- اللاعب الأسود -->
                 <div class="royal-player">
 
                     <div class="royal-player-avatar">♚</div>
@@ -336,7 +214,6 @@
 
                 </div>
 
-                <!-- الرقعة -->
                 <div class="royal-board-frame">
                     <div id="board" aria-label="رقعة الشطرنج"></div>
                 </div>
@@ -346,7 +223,6 @@
                     <span>ROYAL CHESS ENGINE</span>
                 </div>
 
-                <!-- اللاعب الأبيض -->
                 <div class="royal-player">
 
                     <div class="royal-player-avatar">♔</div>
@@ -362,7 +238,6 @@
 
                 </div>
 
-                <!-- أزرار التحكم -->
                 <div class="royal-board-actions">
 
                     <button class="royal-action-btn" id="undoBtn">
@@ -389,7 +264,6 @@
 
             </div>
 
-            <!-- العمود الجانبي -->
             <div class="royal-right-column">
 
                 <div class="royal-panel">
@@ -429,7 +303,6 @@
 
                 </div>
 
-                <!-- سجل النقلات -->
                 <div class="royal-panel">
 
                     <div class="royal-panel-header">
@@ -448,7 +321,6 @@
 
                 </div>
 
-                <!-- المميزات المستقبلية -->
                 <div class="royal-panel royal-feature-card">
 
                     <div class="royal-feature-icon">✧</div>
@@ -473,7 +345,6 @@
     </main>
 </div>
 
-<!-- نافذة إعداد الكمبيوتر -->
 <div class="royal-modal" id="computerModal">
 
     <div class="royal-modal-content">
@@ -509,7 +380,7 @@
     </div>
 </div>
 
-<!-- نافذة الغرف المستقبلية -->
+<!-- نافذة الغرف محفوظة للتطوير المستقبلي -->
 <div class="royal-modal" id="friendModal">
 
     <div class="royal-modal-content">
@@ -542,61 +413,9 @@
     </div>
 </div>
 
-<!-- الإشعارات -->
 <div id="royal-toast" role="status" aria-live="polite"></div>
 
-<!-- كود اللعبة الأساسي -->
 <script src="Chess.js"></script>
-
-<!-- إدارة شاشة اللعب -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const body = document.body;
-    const exitButton = document.getElementById("exitGameView");
-
-    function enterGameView() {
-        body.classList.add("royal-game-mode");
-        window.scrollTo({ top: 0, behavior: "instant" });
-    }
-
-    function exitGameView() {
-        body.classList.remove("royal-game-mode");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    if (exitButton) {
-        exitButton.addEventListener("click", exitGameView);
-    }
-
-    const startButton = document.getElementById("startBtn");
-    const confirmComputer = document.getElementById("confirmComputer");
-    const localButton = document.querySelector('[data-page="local"]');
-
-    if (startButton) {
-        startButton.addEventListener("click", enterGameView);
-    }
-
-    if (confirmComputer) {
-        confirmComputer.addEventListener("click", enterGameView);
-    }
-
-    if (localButton) {
-        localButton.addEventListener("click", enterGameView);
-    }
-
-    /* تعطيل اللعب عبر الإنترنت مؤقتاً */
-    const friendButton = document.querySelector('[data-page="friend"]');
-
-    if (friendButton) {
-        friendButton.disabled = true;
-
-        const tag = friendButton.querySelector(".nav-tag");
-        if (tag) tag.textContent = "قريباً";
-    }
-
-});
-</script>
 
 </body>
 </html>
