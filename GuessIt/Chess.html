@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080d18">
+    <meta name="description" content="ROYAL CHESS — The Ultimate Chess Experience">
+    <title>ROYAL CHESS | Ultimate Edition</title>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="Chess.css">
+
+    <!-- Chess rules engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <style>
+        /* Initial loading protection */
+        #royal-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            background: #080d18;
+            transition: opacity .5s ease, visibility .5s ease;
+        }
+
+        #royal-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-crown {
+            font-size: 64px;
+            color: #d8b56f;
+            animation: royal-pulse 1.5s infinite alternate;
+        }
+
+        .loader-title {
+            color: #e8d3a4;
+            font-family: Orbitron, sans-serif;
+            font-size: 19px;
+            letter-spacing: 5px;
+        }
+
+        .loader-bar {
+            width: 180px;
+            height: 3px;
+            background: #202b3d;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .loader-progress {
+            width: 45%;
+            height: 100%;
+            background: #d8b56f;
+            animation: royal-loading 1.2s infinite ease-in-out;
+        }
+
+        @keyframes royal-pulse {
+            from { transform: scale(.92); opacity: .6; }
+            to { transform: scale(1.08); opacity: 1; }
+        }
+
+        @keyframes royal-loading {
+            from { transform: translateX(220%); }
+            to { transform: translateX(-220%); }
+        }
+
+        /* Application shell */
+        .royal-app {
+            min-height: 100vh;
+            display: flex;
+            background: #080d18;
+        }
+
+        /* Sidebar */
+        .royal-sidebar {
+            width: 260px;
+            min-height: 100vh;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 25px 17px;
+            background: linear-gradient(180deg, #101a2b, #0b1220);
+            border-left: 1px solid rgba(216,181,111,.16);
+            z-index: 20;
+        }
+
+        .royal-brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 5px 10px 32px;
+        }
+
+        .royal-logo {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            color: #f2d79c;
+            font-size: 32px;
+            background: linear-gradient(145deg,#27354c,#111a2a);
+            border: 1px solid rgba(216,181,111,.35);
+            box-shadow: 0 0 25px rgba(216,181,111,.12);
+        }
+
+        .royal-brand-name {
+            font-family: Orbitron, sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #f4e8cc;
+        }
+
+        .royal-brand-sub {
+            color: #c6a46a;
+            font-family: Orbitron, sans-serif;
+            font-size: 8px;
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        .royal-nav-label {
+            color: #65738a;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 15px 13px 9px;
+        }
+
+        .royal-nav {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 14px;
+            margin: 3px 0;
+            color: #9daabd;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            text-align: right;
+            font-family: Cairo, sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .25s ease;
+        }
+
+        .royal-nav:hover,
+        .royal-nav.active {
+            color: #f0d39b;
+            background: linear-gradient(90deg,rgba(216,181,111,.03),rgba(216,181,111,.12));
+            border-color: rgba(216,181,111,.15);
+            transform: translateX(-3px);
+        }
+
+        .royal-nav-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .royal-nav .nav-tag {
+            margin-right: auto;
+            font-size: 8px;
+            color: #d7b66e;
+            background: rgba(216,181,111,.12);
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        .royal-sidebar-bottom {
+            margin-top: auto;
+            padding-top: 25px;
+        }
+
+        .royal-user-mini {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 13px;
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .royal-avatar {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            background: #28364b;
+            border-radius: 10px;
+            color: #e8d19f;
+            font-size: 20px;
+        }
+
+        .royal-user-mini strong {
+            display: block;
+            font-size: 11px;
+            color: #e7eaf0;
+        }
+
+        .royal-user-mini small {
+            color: #8290a5;
+            font-size: 9px;
+        }
+
+        .royal-home-link {
+            display: block;
+            text-align: center;
+            padding: 11px;
+            color: #d8b56f;
+            text-decoration: none;
+            border: 1px solid rgba(216,181,111,.2);
+            border-radius: 9px;
+            font-size: 12px;
+            transition: .2s;
+        }
+
+        .royal-home-link:hover {
+            background: rgba(216,181,111,.1);
+        }
+
+        /* Main content */
+        .royal-main {
+            flex: 1;
+            min-width: 0;
+            padding: 28px 34px;
+            max-width: 1700px;
+            margin: 0 auto;
+        }
+
+        .royal-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 27px;
+        }
+
+        .royal-page-heading small {
+            color: #8190a6;
+            font-size: 11px;
+        }
+
+        .royal-page-heading h1 {
+            margin: 3px 0 0;
+            color: #f0e6d1;
+            font-family: Orbitron, sans-serif;
+            font-size: clamp(20px,3vw,27px);
+            letter-spacing: 2px;
+        }
+
+        .royal-page-heading h1 span {
+            color: #d8b56f;
+        }
+
+        .royal-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .royal-icon-btn {
+            width: 41px;
+            height: 41px;
+            display: grid;
+            place-items: center;
+            color: #c9d1df;
+            background: #121d2e;
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 10px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        .royal-icon-btn:hover {
+            border-color: rgba(216,181,111,.4);
+            color: #e8d19f;
+        }
+
+        .royal-system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 13px;
+            color: #a9b5c5;
+            background: #121d2e;
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 30px;
+            font-size: 10px;
+        }
+
+        .royal-status-dot {
+            width: 7px;
+            height: 7px;
+            background: #52c98b;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #52c98b;
+        }
+
+        /* Hero */
+        .royal-hero {
+            min-height: 240px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 30px 38px;
+            margin-bottom: 26px;
+            overflow: hidden;
+            border-radius: 17px;
+            border: 1px solid rgba(216,181,111,.2);
+            background:
+                radial-gradient(circle at 78% 45%,rgba(216,181,111,.16),transparent 30%),
+                linear-gradient(115deg,#19273d,#111a2a 60%,#141b29);
+        }
+
+        .royal-hero::before {
+            content: "";
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            border: 1px solid rgba(216,181,111,.09);
+            border-radius: 50%;
+            left: 16%;
+            top: -170px;
+            box-shadow: 0 0 0 30px rgba(216,181,111,.015),0 0 0 60px rgba(216,181,111,.015);
+        }
+
+        .royal-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .royal-eyebrow {
+            color: #d8b56f;
+            font-family: Orbitron, sans-serif;
+            font-size: 9px;
+            letter-spacing: 3px;
+        }
+
+        .royal-hero h2 {
+            margin: 12px 0 8px;
+            color: #f4ead5;
+            font-size: clamp(24px,4vw,39px);
+            line-height: 1.5;
+            font-weight: 900;
+        }
+
+        .royal-hero h2 span {
+            color: #d8b56f;
+        }
+
+        .royal-hero p {
+            color: #9ba9bc;
+            font-size: 12px;
+            line-height: 2;
+            max-width: 440px;
+        }
+
+        .royal-hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .royal-primary-btn,
+        .royal-secondary-btn {
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-family: Cairo, sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .royal-primary-btn {
+            color: #17130b;
+            background: linear-gradient(110deg,#b98e4d,#f0d49a);
+            border: none;
+            box-shadow: 0 5px 20px rgba(216,181,111,.12);
+        }
+
+        .royal-primary-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(216,181,111,.23);
+        }
+
+        .royal-secondary-btn {
+            color: #e5d3ac;
+            background: rgba(255,255,255,.035);
+            border: 1px solid rgba(216,181,111,.24);
+        }
+
+        .royal-secondary-btn:hover {
+            background: rgba(216,181,111,.1);
+        }
+
+        .royal-hero-piece {
+            position: relative;
+            z-index: 1;
+            padding: 0 25px;
+            color: rgba(226,194,131,.85);
+            font-size: clamp(90px,13vw,160px);
+            text-shadow: 0 0 45px rgba(216,181,111,.3);
+            animation: royal-float 5s ease-in-out infinite;
+        }
+
+        @keyframes royal-float {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Statistics */
+        .royal-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 13px;
+            margin-bottom: 25px;
+        }
+
+        .royal-stat-card {
+            padding: 17px;
+            background: linear-gradient(145deg,#172338,#101827);
+            border: 1px solid rgba(216,181,111,.13);
+            border-radius: 12px;
+        }
+
+        .royal-stat-card small {
+            display: block;
+            color: #8190a6;
+            font-size: 10px;
+        }
+
+        .royal-stat-card strong {
+            display: block;
+            margin-top: 8px;
+            color: #f0d49a;
+            font-family: Orbitron, sans-serif;
+            font-size: 23px;
+        }
+
+        .royal-stat-card span {
+            display: block;
+            margin-top: 5px;
+            color: #718098;
+            font-size: 9px;
+        }
+
+        /* Game layout */
+        .royal-game-layout {
+            display: grid;
+            grid-template-columns: minmax(0,1.45fr) minmax(260px,.75fr);
+            gap: 19px;
+            align-items: start;
+        }
+
+        .royal-panel {
+            background: linear-gradient(145deg,#121e30,#101827);
+            border: 1px solid rgba(216,181,111,.15);
+            border-radius: 14px;
+            padding: 19px;
+        }
+
+        .royal-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .royal-panel-header h3 {
+            color: #e8e5dd;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .royal-panel-header p {
+            color: #77869b;
+            font-size: 10px;
+            margin: 4px 0 0;
+        }
+
+        .royal-live-badge {
+            color: #d8b56f;
+            font-family: Orbitron,sans-serif;
+            font-size: 8px;
+            letter-spacing: 1px;
+            border: 1px solid rgba(216,181,111,.25);
+            border-radius: 20px;
+            padding: 6px 9px;
+        }
+
+        /* Players */
+        .royal-player {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 4px;
+        }
+
+        .royal-player-avatar {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: #26364d;
+            color: #e9d7ae;
+            font-size: 22px;
+        }
+
+        .royal-player-info strong {
+            display: block;
+            color: #e9edf3;
+            font-size: 11px;
+        }
+
+        .royal-player-info small {
+            color: #7f8da1;
+            font-size: 9px;
+        }
+
+        .royal-player-clock {
+            margin-right: auto;
+            padding: 6px 12px;
+            color: #dce3ed;
+            background: #0b1320;
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 6px;
+            font-family: Orbitron,sans-serif;
+            font-size: 12px;
+        }
+
+        .royal-player-clock.active {
+            color: #f0d49a;
+            border-color: rgba(216,181,111,.4);
+        }
+
+        /* Chessboard mount */
+        .royal-board-frame {
+            width: 100%;
+            max-width: 590px;
+            margin: 0 auto;
+            padding: 5px;
+            border-radius: 7px;
+            background: linear-gradient(135deg,#9b7844,#39465a,#c6a568);
+            box-shadow: 0 15px 40px rgba(0,0,0,.4);
+        }
+
+        #board {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(8,minmax(0,1fr));
+            aspect-ratio: 1;
+            overflow: hidden;
+            border: 2px solid #1a2638;
+        }
+
+        .royal-board-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 590px;
+            margin: 9px auto 0;
+            color: #77869b;
+            font-size: 9px;
+        }
+
+        .royal-board-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .royal-action-btn {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 7px;
+            color: #c7d1df;
+            background: #1b2940;
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 8px;
+            font-family: Cairo,sans-serif;
+            font-size: 10px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .royal-action-btn:hover {
+            color: #f0d49a;
+            border-color: rgba(216,181,111,.3);
+        }
+
+        .royal-game-status {
+            margin-top: 12px;
+            padding: 12px;
+            text-align: center;
+            color: #e4c98e;
+            background: rgba(216,181,111,.06);
+            border: 1px solid rgba(216,181,111,.12);
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        /* Right panel */
+        .royal-right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .royal-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,.045);
+            color: #8190a6;
+            font-size: 10px;
+        }
+
+        .royal-info-row strong {
+            color: #e1c78f;
+            font-size: 10px;
+        }
+
+        .royal-history {
+            max-height: 250px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #46536b transparent;
+        }
+
+        .royal-history-empty {
+            padding: 25px 5px;
+            color: #718097;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .royal-move-row {
+            display: grid;
+            grid-template-columns: 35px 1fr 1fr;
+            padding: 10px 6px;
+            border-bottom: 1px solid rgba(255,255,255,.045);
+            color: #c7d0dd;
+            font-family: Orbitron,sans-serif;
+            font-size: 10px;
+        }
+
+        .royal-move-number {
+            color: #74829a;
+        }
+
+        .royal-feature-card {
+            text-align: center;
+            padding: 22px 15px;
+            background: radial-gradient(circle at top,#27344b,#111b2b 75%);
+        }
+
+        .royal-feature-icon {
+            color: #d8b56f;
+            font-size: 30px;
+        }
+
+        .royal-feature-card h3 {
+            color: #e6d6b5;
+            font-size: 13px;
+        }
+
+        .royal-feature-card p {
+            color: #8795a9;
+            font-size: 10px;
+            line-height: 2;
+        }
+
+        /* Footer */
+        .royal-footer {
+            padding: 35px 0 15px;
+            text-align: center;
+            color: #56647b;
+            font-family: Orbitron,sans-serif;
+            font-size: 9px;
+            letter-spacing: 2px;
+        }
+
+        .royal-footer span {
+            color: #c9a765;
+        }
+
+        /* Modal */
+        .royal-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(2,6,13,.85);
+            backdrop-filter: blur(12px);
+        }
+
+        .royal-modal.open {
+            display: flex;
+        }
+
+        .royal-modal-content {
+            width: 100%;
+            max-width: 440px;
+            padding: 25px;
+            background: #142035;
+            border: 1px solid rgba(216,181,111,.28);
+            border-radius: 15px;
+            box-shadow: 0 25px 90px #0009;
+        }
+
+        .royal-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .royal-modal-header h3 {
+            color: #e9d5aa;
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .royal-modal-close {
+            width: 32px;
+            height: 32px;
+            color: #d0d8e5;
+            background: #26344a;
+            border: 0;
+            border-radius: 7px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .royal-form-group {
+            margin-bottom: 15px;
+        }
+
+        .royal-form-group label {
+            display: block;
+            margin-bottom: 7px;
+            color: #a7b4c7;
+            font-size: 11px;
+        }
+
+        .royal-form-group select,
+        .royal-form-group input {
+            width: 100%;
+            padding: 12px;
+            color: #e6edf6;
+            background: #0d1727;
+            border: 1px solid rgba(216,181,111,.18);
+            border-radius: 8px;
+            font-family: Cairo,sans-serif;
+            outline: none;
+        }
+
+        .royal-form-group select:focus,
+        .royal-form-group input:focus {
+            border-color: #d8b56f;
+        }
+
+        .royal-modal-submit {
+            width: 100%;
+            padding: 12px;
+            color: #17130b;
+            background: linear-gradient(110deg,#b98e4d,#f0d49a);
+            border: none;
+            border-radius: 8px;
+            font-family: Cairo,sans-serif;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* Notifications */
+        #royal-toast {
+            position: fixed;
+            bottom: 22px;
+            left: 22px;
+            z-index: 2000;
+            max-width: calc(100% - 44px);
+            padding: 12px 17px;
+            color: #f0d49a;
+            background: #18253a;
+            border: 1px solid rgba(216,181,111,.3);
+            border-radius: 9px;
+            font-size: 11px;
+            opacity: 0;
+            transform: translateY(15px);
+            pointer-events: none;
+            transition: .3s;
+        }
+
+        #royal-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media(max-width:1050px) {
+            .royal-sidebar {
+                width: 220px;
+            }
+
+            .royal-main {
+                padding: 24px 20px;
+            }
+
+            .royal-game-layout {
+                grid-template-columns: minmax(0,1.2fr) minmax(230px,.8fr);
+            }
+        }
+
+        @media(max-width:800px) {
+            .royal-sidebar {
+                width: 75px;
+                padding: 17px 9px;
+            }
+
+            .royal-brand {
+                justify-content: center;
+                padding: 5px 0 25px;
+            }
+
+            .royal-brand-text,
+            .royal-nav-label,
+            .royal-nav-text,
+            .royal-nav .nav-tag,
+            .royal-user-mini > div,
+            .royal-home-link {
+                display: none;
+            }
+
+            .royal-nav {
+                justify-content: center;
+                padding: 12px 4px;
+            }
+
+            .royal-nav-icon {
+                font-size: 20px;
+            }
+
+            .royal-user-mini {
+                justify-content: center;
+                padding: 8px 2px;
+            }
+
+            .royal-game-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .royal-stat-grid {
+                grid-template-columns: repeat(2,1fr);
+            }
+        }
+
+        @media(max-width:520px) {
+            .royal-main {
+                padding: 17px 11px;
+            }
+
+            .royal-topbar {
+                align-items: flex-start;
+            }
+
+            .royal-system-status {
+                display: none;
+            }
+
+            .royal-hero {
+                min-height: 215px;
+                padding: 22px 17px;
+            }
+
+            .royal-hero h2 {
+                font-size: 24px;
+            }
+
+            .royal-hero p {
+                font-size: 10px;
+            }
+
+            .royal-hero-piece {
+                font-size: 70px;
+                padding: 0;
+            }
+
+            .royal-stat-card {
+                padding: 13px;
+            }
+
+            .royal-stat-card strong {
+                font-size: 19px;
+            }
+
+            .royal-panel {
+                padding: 12px;
+            }
+
+            .royal-board-frame {
+                padding: 3px;
+            }
+
+            .royal-action-btn {
+                min-width: 75px;
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Loading screen -->
+<div id="royal-loader">
+    <div class="loader-crown">♛</div>
+    <div class="loader-title">ROYAL CHESS</div>
+    <div class="loader-bar">
+        <div class="loader-progress"></div>
+    </div>
+</div>
+
+<div class="royal-app">
+
+    <!-- Sidebar -->
+    <aside class="royal-sidebar">
+
+        <div class="royal-brand">
+            <div class="royal-logo">♛</div>
+            <div class="royal-brand-text">
+                <div class="royal-brand-name">ROYAL</div>
+                <div class="royal-brand-sub">CHESS</div>
+            </div>
+        </div>
+
+        <div class="royal-nav-label">MAIN MENU</div>
+
+        <button class="royal-nav active" data-page="play">
+            <span class="royal-nav-icon">♟</span>
+            <span class="royal-nav-text">ساحة اللعب</span>
+        </button>
+
+        <button class="royal-nav" data-page="computer">
+            <span class="royal-nav-icon">◈</span>
+            <span class="royal-nav-text">ضد الكمبيوتر</span>
+        </button>
+
+        <button class="royal-nav" data-page="friend">
+            <span class="royal-nav-icon">♙</span>
+            <span class="royal-nav-text">اللعب مع صديق</span>
+            <span class="nav-tag">ONLINE</span>
+        </button>
+
+        <button class="royal-nav" data-page="local">
+            <span class="royal-nav-icon">♜</span>
+            <span class="royal-nav-text">لاعبان محلياً</span>
+        </button>
+
+        <div class="royal-nav-label">PLAYER CENTER</div>
+
+        <button class="royal-nav" data-page="profile">
+            <span class="royal-nav-icon">♙</span>
+            <span class="royal-nav-text">الملف الشخصي</span>
+        </button>
+
+        <button class="royal-nav" data-page="stats">
+            <span class="royal-nav-icon">▤</span>
+            <span class="royal-nav-text">الإحصائيات</span>
+        </button>
+
+        <button class="royal-nav" data-page="settings">
+            <span class="royal-nav-icon">⚙</span>
+            <span class="royal-nav-text">الإعدادات</span>
+        </button>
+
+        <div class="royal-sidebar-bottom">
+
+            <div class="royal-user-mini">
+                <div class="royal-avatar">♔</div>
+                <div>
+                    <strong>ROYAL PLAYER</strong>
+                    <small>Unranked Player</small>
+                </div>
+            </div>
+
+            <a class="royal-home-link" href="Index.html">
+                ← العودة إلى GuessIt
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- Main -->
+    <main class="royal-main">
+
+        <header class="royal-topbar">
+
+            <div class="royal-page-heading">
+                <small>مرحباً بك في عالم الملوك</small>
+                <h1>ROYAL <span>CHESS</span></h1>
+            </div>
+
+            <div class="royal-top-actions">
+                <div class="royal-system-status">
+                    <span class="royal-status-dot"></span>
+                    <span>النظام جاهز</span>
+                </div>
+
+                <button class="royal-icon-btn" id="soundToggle" title="الصوت">
+                    ♪
+                </button>
+
+                <button class="royal-icon-btn" id="fullscreenBtn" title="ملء الشاشة">
+                    ⛶
+                </button>
+            </div>
+
+        </header>
+
+        <!-- Hero -->
+        <section class="royal-hero">
+
+            <div class="royal-hero-content">
+
+                <div class="royal-eyebrow">THE ULTIMATE CHESS EXPERIENCE</div>
+
+                <h2>
+                    السيطرة تبدأ<br>
+                    <span>من أول نقلة.</span>
+                </h2>
+
+                <p>
+                    ادخل ساحة الملوك، اختبر تفكيرك الاستراتيجي،
+                    واصنع طريقك نحو القمة.
+                </p>
+
+                <div class="royal-hero-actions">
+
+                    <button class="royal-primary-btn" id="startBtn">
+                        ابدأ مباراة جديدة
+                    </button>
+
+                    <button class="royal-secondary-btn" id="computerBtn">
+                        تحدَّ الذكاء الاصطناعي
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="royal-hero-piece">♛</div>
+
+        </section>
+
+        <!-- Statistics -->
+        <section class="royal-stat-grid">
+
+            <div class="royal-stat-card">
+                <small>المباريات</small>
+                <strong id="statGames">0</strong>
+                <span>إجمالي المباريات المسجلة</span>
+            </div>
+
+            <div class="royal-stat-card">
+                <small>الانتصارات</small>
+                <strong id="statWins">0</strong>
+                <span>المباريات التي فزت بها</span>
+            </div>
+
+            <div class="royal-stat-card">
+                <small>التصنيف</small>
+                <strong id="statRating">—</strong>
+                <span>نظام التصنيف قادم</span>
+            </div>
+
+            <div class="royal-stat-card">
+                <small>المستوى</small>
+                <strong id="statLevel">01</strong>
+                <span>رحلتك نحو الاحتراف</span>
+            </div>
+
+        </section>
+
+        <!-- Main game section -->
+        <section class="royal-game-layout">
+
+            <div class="royal-panel">
+
+                <div class="royal-panel-header">
+                    <div>
+                        <h3>ساحة المعركة الملكية</h3>
+                        <p>ROYAL BATTLEFIELD · CHESS ARENA</p>
+                    </div>
+
+                    <span class="royal-live-badge">LIVE BOARD</span>
+                </div>
+
+                <!-- Black player -->
+                <div class="royal-player">
+
+                    <div class="royal-player-avatar">♚</div>
+
+                    <div class="royal-player-info">
+                        <strong>اللاعب الأسود</strong>
+                        <small>BLACK SIDE</small>
+                    </div>
+
+                    <div class="royal-player-clock" id="blackClock">
+                        ∞
+                    </div>
+
+                </div>
+
+                <!-- Chessboard -->
+                <div class="royal-board-frame">
+                    <div id="board" aria-label="رقعة الشطرنج"></div>
+                </div>
+
+                <div class="royal-board-footer">
+                    <span>A1 — H8</span>
+                    <span>ROYAL CHESS ENGINE</span>
+                </div>
+
+                <!-- White player -->
+                <div class="royal-player">
+
+                    <div class="royal-player-avatar">♔</div>
+
+                    <div class="royal-player-info">
+                        <strong>اللاعب الأبيض</strong>
+                        <small>WHITE SIDE</small>
+                    </div>
+
+                    <div class="royal-player-clock active" id="whiteClock">
+                        ∞
+                    </div>
+
+                </div>
+
+                <!-- Actions -->
+                <div class="royal-board-actions">
+
+                    <button class="royal-action-btn" id="undoBtn">
+                        ↶ تراجع
+                    </button>
+
+                    <button class="royal-action-btn" id="restartBtn">
+                        ⟳ إعادة المباراة
+                    </button>
+
+                    <button class="royal-action-btn" id="flipBoardBtn">
+                        ⇅ قلب الرقعة
+                    </button>
+
+                    <button class="royal-action-btn" id="resignBtn">
+                        استسلام
+                    </button>
+
+                </div>
+
+                <div class="royal-game-status" id="gameStatus">
+                    الأبيض يبدأ المباراة.
+                </div>
+
+            </div>
+
+            <!-- Right column -->
+            <div class="royal-right-column">
+
+                <div class="royal-panel">
+
+                    <div class="royal-panel-header">
+                        <div>
+                            <h3>بيانات المباراة</h3>
+                            <p>MATCH INFORMATION</p>
+                        </div>
+                        <span>◈</span>
+                    </div>
+
+                    <div class="royal-info-row">
+                        <span>نوع المباراة</span>
+                        <strong id="matchType">محلية</strong>
+                    </div>
+
+                    <div class="royal-info-row">
+                        <span>الحالة</span>
+                        <strong id="matchState">جاهزة</strong>
+                    </div>
+
+                    <div class="royal-info-row">
+                        <span>الدور الحالي</span>
+                        <strong id="currentTurn">الأبيض</strong>
+                    </div>
+
+                    <div class="royal-info-row">
+                        <span>عدد النقلات</span>
+                        <strong id="moveCount">0</strong>
+                    </div>
+
+                    <div class="royal-info-row">
+                        <span>آخر نقلة</span>
+                        <strong id="lastMove">—</strong>
+                    </div>
+
+                </div>
+
+                <!-- Move history -->
+                <div class="royal-panel">
+
+                    <div class="royal-panel-header">
+                        <div>
+                            <h3>سجل النقلات</h3>
+                            <p>MOVE HISTORY</p>
+                        </div>
+                        <span>▤</span>
+                    </div>
+
+                    <div class="royal-history" id="moveHistory">
+                        <div class="royal-history-empty">
+                            لا توجد نقلات حتى الآن.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Future features -->
+                <div class="royal-panel royal-feature-card">
+
+                    <div class="royal-feature-icon">✧</div>
+
+                    <h3>THE NEXT GENERATION</h3>
+
+                    <p>
+                        أنظمة الذكاء الاصطناعي، الغرف الخاصة،
+                        التصنيف العالمي وتحليل المباريات.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <footer class="royal-footer">
+            ROYAL CHESS <span>ULTIMATE EDITION</span> · 2026
+        </footer>
+
+    </main>
+
+</div>
+
+<!-- Computer settings modal -->
+<div class="royal-modal" id="computerModal">
+
+    <div class="royal-modal-content">
+
+        <div class="royal-modal-header">
+            <h3>إعداد مباراة الذكاء الاصطناعي</h3>
+            <button class="royal-modal-close" data-close="computerModal">×</button>
+        </div>
+
+        <div class="royal-form-group">
+            <label for="difficulty">مستوى الصعوبة</label>
+            <select id="difficulty">
+                <option value="1">مبتدئ</option>
+                <option value="2">سهل</option>
+                <option value="3">متوسط</option>
+                <option value="4">صعب</option>
+                <option value="5">خبير</option>
+            </select>
+        </div>
+
+        <div class="royal-form-group">
+            <label for="playerColor">لون قطعك</label>
+            <select id="playerColor">
+                <option value="w">الأبيض</option>
+                <option value="b">الأسود</option>
+            </select>
+        </div>
+
+        <button class="royal-modal-submit" id="confirmComputer">
+            إنشاء المباراة
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Friend room modal -->
+<div class="royal-modal" id="friendModal">
+
+    <div class="royal-modal-content">
+
+        <div class="royal-modal-header">
+            <h3>اللعب مع صديق</h3>
+            <button class="royal-modal-close" data-close="friendModal">×</button>
+        </div>
+
+        <div class="royal-form-group">
+            <label for="roomCode">رمز الغرفة</label>
+            <input
+                id="roomCode"
+                type="text"
+                maxlength="12"
+                placeholder="أدخل رمز الغرفة"
+                autocomplete="off"
+            >
+        </div>
+
+        <button class="royal-modal-submit" id="joinRoomBtn">
+            الانضمام إلى الغرفة
+        </button>
+
+        <p style="color:#8795a9;font-size:10px;text-align:center;line-height:2">
+            يتطلب اللعب عبر الإنترنت إعداد خدمة الغرف والمزامنة.
+        </p>
+
+    </div>
+
+</div>
+
+<!-- Notification -->
+<div id="royal-toast" role="status" aria-live="polite"></div>
+
+<!-- Main game logic -->
+<script src="Chess.js"></script>
+
+</body>
+</html>
