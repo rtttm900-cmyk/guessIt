@@ -395,7 +395,6 @@ function applyRemoteMoves(room) {
     }
 } 
 
-}
 
 /* ========================= NEW GAME ========================= */
 
