@@ -5,32 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080d18">
     <meta name="description" content="ROYAL CHESS — The Ultimate Chess Experience">
+
     <title>ROYAL CHESS | Ultimate Edition</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Styles -->
     <link rel="stylesheet" href="Chess.css">
+
+    <!-- Chess Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
 
 <body>
 
-<div id="royal-loader">
+<!-- ===================== LOADER ===================== -->
+
+<div id="royal-loader" aria-label="جاري تحميل ROYAL CHESS">
     <div class="loader-crown">♛</div>
     <div class="loader-title">ROYAL CHESS</div>
+
     <div class="loader-bar">
         <div class="loader-progress"></div>
     </div>
 </div>
 
+<!-- ===================== APP ===================== -->
+
 <div class="royal-app">
+
+    <!-- ================= SIDEBAR ================= -->
 
     <aside class="royal-sidebar">
 
         <div class="royal-brand">
-            <div class="royal-logo">♛</div>
+            <div class="royal-logo" aria-hidden="true">♛</div>
+
             <div class="royal-brand-text">
                 <div class="royal-brand-name">ROYAL</div>
                 <div class="royal-brand-sub">CHESS</div>
@@ -39,52 +56,96 @@
 
         <div class="royal-nav-label">MAIN MENU</div>
 
-        <button class="royal-nav active" data-page="play">
-            <span class="royal-nav-icon">♟</span>
-            <span class="royal-nav-text">ساحة اللعب</span>
-        </button>
+        <nav class="royal-navigation" aria-label="القائمة الرئيسية">
 
-        <button class="royal-nav" data-page="computer">
-            <span class="royal-nav-icon">◈</span>
-            <span class="royal-nav-text">ضد الكمبيوتر</span>
-        </button>
+            <button
+                class="royal-nav active"
+                data-page="play"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">♟</span>
+                <span class="royal-nav-text">ساحة اللعب</span>
+            </button>
 
-        <button class="royal-nav" data-page="friend" disabled aria-disabled="true" title="قريباً">
-            <span class="royal-nav-icon">♙</span>
-            <span class="royal-nav-text">اللعب مع صديق</span>
-            <span class="nav-tag">قريباً</span>
-        </button>
+            <button
+                class="royal-nav"
+                data-page="computer"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">◈</span>
+                <span class="royal-nav-text">ضد الكمبيوتر</span>
+            </button>
 
-        <button class="royal-nav" data-page="local">
-            <span class="royal-nav-icon">♜</span>
-            <span class="royal-nav-text">لاعبان محلياً</span>
-        </button>
+            <button
+                class="royal-nav"
+                data-page="friend"
+                type="button"
+                disabled
+                aria-disabled="true"
+                title="قريباً"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">♙</span>
+                <span class="royal-nav-text">اللعب مع صديق</span>
+                <span class="nav-tag">قريباً</span>
+            </button>
+
+            <button
+                class="royal-nav"
+                data-page="local"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">♜</span>
+                <span class="royal-nav-text">لاعبان محلياً</span>
+            </button>
+
+        </nav>
 
         <div class="royal-nav-label">PLAYER CENTER</div>
 
-        <button class="royal-nav" data-page="profile">
-            <span class="royal-nav-icon">♙</span>
-            <span class="royal-nav-text">الملف الشخصي</span>
-        </button>
+        <nav class="royal-navigation" aria-label="مركز اللاعب">
 
-        <button class="royal-nav" data-page="stats">
-            <span class="royal-nav-icon">▤</span>
-            <span class="royal-nav-text">الإحصائيات</span>
-        </button>
+            <button
+                class="royal-nav"
+                data-page="profile"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">♙</span>
+                <span class="royal-nav-text">الملف الشخصي</span>
+            </button>
 
-        <button class="royal-nav" data-page="settings">
-            <span class="royal-nav-icon">⚙</span>
-            <span class="royal-nav-text">الإعدادات</span>
-        </button>
+            <button
+                class="royal-nav"
+                data-page="stats"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">▤</span>
+                <span class="royal-nav-text">الإحصائيات</span>
+            </button>
+
+            <button
+                class="royal-nav"
+                data-page="settings"
+                type="button"
+            >
+                <span class="royal-nav-icon" aria-hidden="true">⚙</span>
+                <span class="royal-nav-text">الإعدادات</span>
+            </button>
+
+        </nav>
+
+        <!-- Sidebar Footer -->
 
         <div class="royal-sidebar-bottom">
 
             <div class="royal-user-mini">
-                <div class="royal-avatar">♔</div>
-                <div>
+
+                <div class="royal-avatar" aria-hidden="true">♔</div>
+
+                <div class="royal-user-details">
                     <strong>ROYAL PLAYER</strong>
                     <small>Unranked Player</small>
                 </div>
+
             </div>
 
             <a class="royal-home-link" href="index.html">
@@ -92,9 +153,14 @@
             </a>
 
         </div>
+
     </aside>
 
+    <!-- ================= MAIN CONTENT ================= -->
+
     <main class="royal-main">
+
+        <!-- ================= TOPBAR ================= -->
 
         <header class="royal-topbar">
 
@@ -106,26 +172,43 @@
             <div class="royal-top-actions">
 
                 <div class="royal-system-status">
-                    <span class="royal-status-dot"></span>
+                    <span class="royal-status-dot" aria-hidden="true"></span>
                     <span>النظام جاهز</span>
                 </div>
 
-                <button class="royal-icon-btn" id="soundToggle" title="الصوت">
+                <button
+                    class="royal-icon-btn"
+                    id="soundToggle"
+                    type="button"
+                    title="الصوت"
+                    aria-label="تشغيل أو إيقاف الصوت"
+                >
                     ♪
                 </button>
 
-                <button class="royal-icon-btn" id="fullscreenBtn" title="ملء الشاشة">
+                <button
+                    class="royal-icon-btn"
+                    id="fullscreenBtn"
+                    type="button"
+                    title="ملء الشاشة"
+                    aria-label="ملء الشاشة"
+                >
                     ⛶
                 </button>
 
             </div>
+
         </header>
+
+        <!-- ================= HERO ================= -->
 
         <section class="royal-hero">
 
             <div class="royal-hero-content">
 
-                <div class="royal-eyebrow">THE ULTIMATE CHESS EXPERIENCE</div>
+                <div class="royal-eyebrow">
+                    THE ULTIMATE CHESS EXPERIENCE
+                </div>
 
                 <h2>
                     السيطرة تبدأ<br>
@@ -139,69 +222,95 @@
 
                 <div class="royal-hero-actions">
 
-                    <button class="royal-primary-btn" id="startBtn">
+                    <button
+                        class="royal-primary-btn"
+                        id="startBtn"
+                        type="button"
+                    >
                         ابدأ مباراة جديدة
                     </button>
 
-                    <button class="royal-secondary-btn" id="computerBtn">
+                    <button
+                        class="royal-secondary-btn"
+                        id="computerBtn"
+                        type="button"
+                    >
                         تحدَّ الذكاء الاصطناعي
                     </button>
 
                 </div>
+
             </div>
 
-            <div class="royal-hero-piece">♛</div>
+            <div class="royal-hero-piece" aria-hidden="true">♛</div>
 
         </section>
 
-        <section class="royal-stat-grid">
+        <!-- ================= STATISTICS ================= -->
 
-            <div class="royal-stat-card">
+        <section class="royal-stat-grid" aria-label="إحصائيات اللاعب">
+
+            <article class="royal-stat-card">
                 <small>المباريات</small>
                 <strong id="statGames">0</strong>
                 <span>إجمالي المباريات المسجلة</span>
-            </div>
+            </article>
 
-            <div class="royal-stat-card">
+            <article class="royal-stat-card">
                 <small>الانتصارات</small>
                 <strong id="statWins">0</strong>
                 <span>المباريات التي فزت بها</span>
-            </div>
+            </article>
 
-            <div class="royal-stat-card">
+            <article class="royal-stat-card">
                 <small>التصنيف</small>
                 <strong id="statRating">—</strong>
                 <span>نظام التصنيف قادم</span>
-            </div>
+            </article>
 
-            <div class="royal-stat-card">
+            <article class="royal-stat-card">
                 <small>المستوى</small>
                 <strong id="statLevel">01</strong>
                 <span>رحلتك نحو الاحتراف</span>
-            </div>
+            </article>
 
         </section>
 
-        <button class="royal-secondary-btn" id="exitGameView" type="button" hidden>
+        <!-- ================= GAME RETURN ================= -->
+
+        <button
+            class="royal-secondary-btn"
+            id="exitGameView"
+            type="button"
+            hidden
+        >
             ← العودة إلى القائمة الرئيسية
         </button>
 
-        <section class="royal-game-layout">
+        <!-- ================= GAME AREA ================= -->
 
-            <div class="royal-panel">
+        <section class="royal-game-layout" aria-label="منطقة مباراة الشطرنج">
+
+            <!-- ================= BOARD PANEL ================= -->
+
+            <div class="royal-panel royal-board-panel">
 
                 <div class="royal-panel-header">
+
                     <div>
                         <h3>ساحة المعركة الملكية</h3>
                         <p>ROYAL BATTLEFIELD · CHESS ARENA</p>
                     </div>
 
                     <span class="royal-live-badge">LIVE BOARD</span>
+
                 </div>
 
-                <div class="royal-player">
+                <!-- Black Player -->
 
-                    <div class="royal-player-avatar">♚</div>
+                <div class="royal-player" id="blackPlayer">
+
+                    <div class="royal-player-avatar" aria-hidden="true">♚</div>
 
                     <div class="royal-player-info">
                         <strong>اللاعب الأسود</strong>
@@ -214,18 +323,28 @@
 
                 </div>
 
+                <!-- Chess Board -->
+
                 <div class="royal-board-frame">
-                    <div id="board" aria-label="رقعة الشطرنج"></div>
+                    <div
+                        id="board"
+                        role="grid"
+                        aria-label="رقعة الشطرنج"
+                    ></div>
                 </div>
+
+                <!-- Board Footer -->
 
                 <div class="royal-board-footer">
                     <span>A1 — H8</span>
                     <span>ROYAL CHESS ENGINE</span>
                 </div>
 
-                <div class="royal-player">
+                <!-- White Player -->
 
-                    <div class="royal-player-avatar">♔</div>
+                <div class="royal-player" id="whitePlayer">
+
+                    <div class="royal-player-avatar" aria-hidden="true">♔</div>
 
                     <div class="royal-player-info">
                         <strong>اللاعب الأبيض</strong>
@@ -238,92 +357,139 @@
 
                 </div>
 
+                <!-- Game Controls -->
+
                 <div class="royal-board-actions">
 
-                    <button class="royal-action-btn" id="undoBtn">
+                    <button
+                        class="royal-action-btn"
+                        id="undoBtn"
+                        type="button"
+                    >
                         ↶ تراجع
                     </button>
 
-                    <button class="royal-action-btn" id="restartBtn">
+                    <button
+                        class="royal-action-btn"
+                        id="restartBtn"
+                        type="button"
+                    >
                         ⟳ إعادة المباراة
                     </button>
 
-                    <button class="royal-action-btn" id="flipBoardBtn">
+                    <button
+                        class="royal-action-btn"
+                        id="flipBoardBtn"
+                        type="button"
+                    >
                         ⇅ قلب الرقعة
                     </button>
 
-                    <button class="royal-action-btn" id="resignBtn">
+                    <button
+                        class="royal-action-btn"
+                        id="resignBtn"
+                        type="button"
+                    >
                         استسلام
                     </button>
 
                 </div>
 
-                <div class="royal-game-status" id="gameStatus">
+                <!-- Status -->
+
+                <div
+                    class="royal-game-status"
+                    id="gameStatus"
+                    role="status"
+                    aria-live="polite"
+                >
                     الأبيض يبدأ المباراة.
                 </div>
 
             </div>
 
-            <div class="royal-right-column">
+            <!-- ================= RIGHT COLUMN ================= -->
 
-                <div class="royal-panel">
+            <aside class="royal-right-column">
+
+                <!-- Match Information -->
+
+                <section class="royal-panel royal-match-panel">
 
                     <div class="royal-panel-header">
+
                         <div>
                             <h3>بيانات المباراة</h3>
                             <p>MATCH INFORMATION</p>
                         </div>
-                        <span>◈</span>
+
+                        <span aria-hidden="true">◈</span>
+
                     </div>
 
-                    <div class="royal-info-row">
-                        <span>نوع المباراة</span>
-                        <strong id="matchType">محلية</strong>
+                    <div class="royal-match-data">
+
+                        <div class="royal-info-row">
+                            <span>نوع المباراة</span>
+                            <strong id="matchType">محلية</strong>
+                        </div>
+
+                        <div class="royal-info-row">
+                            <span>الحالة</span>
+                            <strong id="matchState">جاهزة</strong>
+                        </div>
+
+                        <div class="royal-info-row">
+                            <span>الدور الحالي</span>
+                            <strong id="currentTurn">الأبيض</strong>
+                        </div>
+
+                        <div class="royal-info-row">
+                            <span>عدد النقلات</span>
+                            <strong id="moveCount">0</strong>
+                        </div>
+
+                        <div class="royal-info-row">
+                            <span>آخر نقلة</span>
+                            <strong id="lastMove">—</strong>
+                        </div>
+
                     </div>
 
-                    <div class="royal-info-row">
-                        <span>الحالة</span>
-                        <strong id="matchState">جاهزة</strong>
-                    </div>
+                </section>
 
-                    <div class="royal-info-row">
-                        <span>الدور الحالي</span>
-                        <strong id="currentTurn">الأبيض</strong>
-                    </div>
+                <!-- Move History -->
 
-                    <div class="royal-info-row">
-                        <span>عدد النقلات</span>
-                        <strong id="moveCount">0</strong>
-                    </div>
-
-                    <div class="royal-info-row">
-                        <span>آخر نقلة</span>
-                        <strong id="lastMove">—</strong>
-                    </div>
-
-                </div>
-
-                <div class="royal-panel">
+                <section class="royal-panel royal-history-panel">
 
                     <div class="royal-panel-header">
+
                         <div>
                             <h3>سجل النقلات</h3>
                             <p>MOVE HISTORY</p>
                         </div>
-                        <span>▤</span>
+
+                        <span aria-hidden="true">▤</span>
+
                     </div>
 
-                    <div class="royal-history" id="moveHistory">
+                    <div
+                        class="royal-history"
+                        id="moveHistory"
+                        aria-live="polite"
+                    >
                         <div class="royal-history-empty">
                             لا توجد نقلات حتى الآن.
                         </div>
                     </div>
 
-                </div>
+                </section>
 
-                <div class="royal-panel royal-feature-card">
+                <!-- Future Features -->
 
-                    <div class="royal-feature-icon">✧</div>
+                <section class="royal-panel royal-feature-card">
+
+                    <div class="royal-feature-icon" aria-hidden="true">✧</div>
 
                     <h3>THE NEXT GENERATION</h3>
 
@@ -332,66 +498,121 @@
                         التصنيف العالمي وتحليل المباريات.
                     </p>
 
-                </div>
+                </section>
 
-            </div>
+            </aside>
 
         </section>
+
+        <!-- ================= FOOTER ================= -->
 
         <footer class="royal-footer">
             ROYAL CHESS <span>ULTIMATE EDITION</span> · 2026
         </footer>
 
     </main>
+
 </div>
 
-<div class="royal-modal" id="computerModal">
+<!-- ================= COMPUTER MODAL ================= -->
+
+<div
+    class="royal-modal"
+    id="computerModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="computerModalTitle"
+>
 
     <div class="royal-modal-content">
 
         <div class="royal-modal-header">
-            <h3>إعداد مباراة الذكاء الاصطناعي</h3>
-            <button class="royal-modal-close" data-close="computerModal">×</button>
+
+            <h3 id="computerModalTitle">إعداد مباراة الذكاء الاصطناعي</h3>
+
+            <button
+                class="royal-modal-close"
+                type="button"
+                data-close="computerModal"
+                aria-label="إغلاق"
+            >
+                ×
+            </button>
+
         </div>
 
         <div class="royal-form-group">
+
             <label for="difficulty">مستوى الصعوبة</label>
+
             <select id="difficulty">
+
                 <option value="1">مبتدئ</option>
                 <option value="2">سهل</option>
                 <option value="3">متوسط</option>
                 <option value="4">صعب</option>
                 <option value="5">خبير</option>
+
             </select>
+
         </div>
 
         <div class="royal-form-group">
+
             <label for="playerColor">لون قطعك</label>
+
             <select id="playerColor">
+
                 <option value="w">الأبيض</option>
                 <option value="b">الأسود</option>
+
             </select>
+
         </div>
 
-        <button class="royal-modal-submit" id="confirmComputer">
-            إنشاء المباراة
+        <button
+            class="royal-modal-submit"
+            id="confirmComputer"
+            type="button"
+        >
+        إنشاء المباراة
         </button>
 
     </div>
+
 </div>
 
-<!-- نافذة الغرف محفوظة للتطوير المستقبلي -->
-<div class="royal-modal" id="friendModal">
+<!-- ================= FRIEND MODAL ================= -->
+
+<div
+    class="royal-modal"
+    id="friendModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="friendModalTitle"
+>
 
     <div class="royal-modal-content">
 
         <div class="royal-modal-header">
-            <h3>اللعب مع صديق</h3>
-            <button class="royal-modal-close" data-close="friendModal">×</button>
+
+            <h3 id="friendModalTitle">اللعب مع صديق</h3>
+
+            <button
+                class="royal-modal-close"
+                type="button"
+                data-close="friendModal"
+                aria-label="إغلاق"
+            >
+                ×
+            </button>
+
         </div>
 
         <div class="royal-form-group">
+
             <label for="roomCode">رمز الغرفة</label>
+
             <input
                 id="roomCode"
                 type="text"
@@ -400,20 +621,35 @@
                 autocomplete="off"
                 disabled
             >
+
         </div>
 
-        <button class="royal-modal-submit" id="joinRoomBtn" disabled>
+        <button
+            class="royal-modal-submit"
+            id="joinRoomBtn"
+            type="button"
+            disabled
+        >
             اللعب أونلاين — قريباً
         </button>
 
-        <p style="color:#8795a9;font-size:10px;text-align:center;line-height:2">
+        <p style="color:#8795a9;font-size:10px;text-align:center;line-height:2;margin-top:13px">
             اللعب مع الأصدقاء عبر الإنترنت — قريباً.
         </p>
 
     </div>
+
 </div>
 
-<div id="royal-toast" role="status" aria-live="polite"></div>
+<!-- ================= TOAST ================= -->
+
+<div
+    id="royal-toast"
+    role="status"
+    aria-live="polite"
+></div>
+
+<!-- ================= SCRIPT ================= -->
 
 <script src="Chess.js"></script>
 
