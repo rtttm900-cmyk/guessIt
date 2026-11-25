@@ -1,44 +1,27 @@
 /* =========================================================
-   ROYAL CHESS
+   ROYAL CHESS — BEYOND THE BOARD
    Main JavaScript Engine
-   Version: 1.0
-   Chess.js: 0.10.3
+   Requires chess.js 0.10.3 loaded before this file.
    ========================================================= */
 
 "use strict";
 
-/* =========================================================
-   01. CONFIGURATION
-   ========================================================= */
+/* ================= CONFIGURATION ================= */
 
-const ROYAL_CONFIG = {
-    defaultTime: 600,
-    aiDepth: {
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 3
-    },
-    aiDelay: 450,
-    storageKey: "ROYAL_CHESS_DATA"
+const CONFIG = {
+    initialTime: 600,
+    aiDepth: 2,
+    animationDuration: 250
 };
 
 const PIECES = {
     w: {
-        k: "♔",
-        q: "♕",
-        r: "♖",
-        b: "♗",
-        n: "♘",
-        p: "♙"
+        k: "♔", q: "♕", r: "♖",
+        b: "♗", n: "♘", p: "♙"
     },
     b: {
-        k: "♚",
-        q: "♛",
-        r: "♜",
-        b: "♝",
-        n: "♞",
-        p: "♟"
+        k: "♚", q: "♛", r: "♜",
+        b: "♝", n: "♞", p: "♟"
     }
 };
 
@@ -51,10 +34,7 @@ const PIECE_VALUES = {
     k: 20000
 };
 
-
-/* =========================================================
-   02. GAME STATE
-   ========================================================= */
+/* ================= GAME STATE ================= */
 
 let game = new Chess();
 
@@ -62,248 +42,86 @@ let selectedSquare = null;
 let legalMoves = [];
 let lastMove = null;
 
-let currentMode = "local";
-let gameFinished = false;
+let playerColor = "w";
+let gameMode = "computer";
+let gameStarted = false;
+let boardFlipped = false;
 let aiThinking = false;
-
-let aiTimer = null;
-let clockInterval = null;
-
-let soundEnabled = true;
-let flipped = false;
+let gameFinished = false;
 
 let difficulty = 2;
-let playerColor = "w";
-
-let clocks = {
-    w: ROYAL_CONFIG.defaultTime,
-    b: ROYAL_CONFIG.defaultTime
-};
-
-let statistics = {
-    games: 0,
-    wins: 0,
-    losses: 0,
-    draws: 0,
-    rating: 1000,
-    level: 1,
-    history: []
-};
 
 let moveHistory = [];
+let roomCode = null;
 
-
-/* =========================================================
-   03. DOM ELEMENTS
-   ========================================================= */
+/* ================= DOM HELPERS ================= */
 
 const $ = selector => document.querySelector(selector);
 
-const $$ = selector => document.querySelectorAll(selector);
+const $$ = selector => Array.from(
+    document.querySelectorAll(selector)
+);
 
-const boardElement = $("#board");
-const gameStatus = $("#gameStatus");
-const moveHistoryElement = $("#moveHistory");
-
-const blackClock = $("#blackClock");
-const whiteClock = $("#whiteClock");
-
-const statGames = $("#statGames");
-const statWins = $("#statWins");
-const statRating = $("#statRating");
-const statLevel = $("#statLevel");
-
-const matchType = $("#matchType");
-const matchState = $("#matchState");
-const currentTurn = $("#currentTurn");
-const moveCount = $("#moveCount");
-const lastMoveElement = $("#lastMove");
-
-const soundToggle = $("#soundToggle");
-const fullscreenBtn = $("#fullscreenBtn");
-
-const startBtn = $("#startBtn");
-const computerBtn = $("#computerBtn");
-const exitGameView = $("#exitGameView");
-
-const undoBtn = $("#undoBtn");
-const restartBtn = $("#restartBtn");
-const flipBoardBtn = $("#flipBoardBtn");
-const resignBtn = $("#resignBtn");
-
-const computerModal = $("#computerModal");
-const friendModal = $("#friendModal");
-
-const difficultySelect = $("#difficulty");
-const playerColorSelect = $("#playerColor");
-const confirmComputer = $("#confirmComputer");
-
-const roomCode = $("#roomCode");
-const joinRoomBtn = $("#joinRoomBtn");
-const createRoomBtn = $("#createRoomBtn");
-
-const toast = $("#royal-toast");
-const toastMessage = $("#toastMessage");
-
-
-/* =========================================================
-   04. STORAGE
-   ========================================================= */
-
-function loadStatistics() {
-    try {
-        const saved = localStorage.getItem(ROYAL_CONFIG.storageKey);
-
-        if (saved) {
-            const data = JSON.parse(saved);
-
-            statistics = {
-                ...statistics,
-                ...data
-            };
-        }
-    } catch (error) {
-        console.warn("Could not load saved data:", error);
-    }
-
-    updateStatisticsUI();
+function get(id) {
+    return document.getElementById(id);
 }
 
-function saveStatistics() {
-    try {
-        localStorage.setItem(
-            ROYAL_CONFIG.storageKey,
-            JSON.stringify(statistics)
-        );
-    } catch (error) {
-        console.warn("Could not save statistics:", error);
-    }
+function exists(id) {
+    return !!get(id);
 }
 
-function updateStatisticsUI() {
-    if (statGames) statGames.textContent = statistics.games;
-    if (statWins) statWins.textContent = statistics.wins;
-    if (statRating) statRating.textContent = statistics.rating;
-    if (statLevel) statLevel.textContent = statistics.level;
+function toast(message, type = "info") {
+    const box = get("royal-toast");
+    const text = get("toastMessage");
 
-    const detailGames = $("#detailGames");
-    const detailWins = $("#detailWins");
-    const detailLosses = $("#detailLosses");
-    const detailDraws = $("#detailDraws");
-
-    if (detailGames) detailGames.textContent = statistics.games;
-    if (detailWins) detailWins.textContent = statistics.wins;
-    if (detailLosses) detailLosses.textContent = statistics.losses;
-    if (detailDraws) detailDraws.textContent = statistics.draws;
-
-    const profileRating = $("#profileRating");
-
-    if (profileRating) {
-        profileRating.textContent = `Rating: ${statistics.rating}`;
+    if (!box || !text) {
+        console.log(message);
+        return;
     }
-}
 
+    text.textContent = message;
 
-/* =========================================================
-   05. NOTIFICATIONS
-   ========================================================= */
+    box.classList.remove("show", "success", "error");
+    box.classList.add("show");
 
-let toastTimeout = null;
+    if (type === "success") box.classList.add("success");
+    if (type === "error") box.classList.add("error");
 
-function showToast(message, type = "info") {
-    if (!toast || !toastMessage) return;
+    clearTimeout(toast.timer);
 
-    toastMessage.textContent = message;
-
-    toast.dataset.type = type;
-    toast.classList.add("show");
-
-    clearTimeout(toastTimeout);
-
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove("show");
+    toast.timer = setTimeout(() => {
+        box.classList.remove("show", "success", "error");
     }, 3000);
 }
 
+/* ================= LOADING SCREEN ================= */
 
-/* =========================================================
-   06. SOUND SYSTEM
-   ========================================================= */
+window.addEventListener("load", () => {
+    const loader =
+        get("loadingScreen") ||
+        get("royal-loader");
 
-let audioContext = null;
+    if (!loader) return;
 
-function playSound(type = "move") {
-    if (!soundEnabled) return;
+    setTimeout(() => {
+        loader.classList.add("hidden");
 
-    try {
-        const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
+        setTimeout(() => {
+            loader.style.display = "none";
+        }, 650);
 
-        if (!AudioContextClass) return;
+    }, 4000);
+});
 
-        if (!audioContext) {
-            audioContext = new AudioContextClass();
-        }
-
-        if (audioContext.state === "suspended") {
-            audioContext.resume();
-        }
-
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-
-        const sounds = {
-            move: [440, 0.07],
-            capture: [260, 0.12],
-            check: [620, 0.16],
-            win: [780, 0.25],
-            error: [180, 0.12]
-        };
-
-        const [frequency, duration] = sounds[type] || sounds.move;
-
-        oscillator.type = "sine";
-        oscillator.frequency.value = frequency;
-
-        gain.gain.setValueAtTime(0.08, audioContext.currentTime);
-
-        gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            audioContext.currentTime + duration
-        );
-
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + duration);
-
-    } catch (error) {
-        console.warn("Audio error:", error);
-    }
-}
-
-
-/* =========================================================
-   07. PAGE NAVIGATION
-   ========================================================= */
-
-const pageTitles = {
-    home: "الرئيسية",
-    play: "ساحة الشطرنج",
-    computer: "ضد الكمبيوتر",
-    friend: "اللعب مع صديق",
-    profile: "الملف الشخصي",
-    statistics: "الإحصائيات",
-    history: "سجل المباريات",
-    openings: "الافتتاحيات",
-    settings: "الإعدادات"
-};
+/* ================= NAVIGATION ================= */
 
 function showPage(pageName) {
-    const page = $(`#${pageName}Page`);
+    const page = get(pageName + "Page");
 
-    if (!page) return;
+    if (!page) {
+        toast("هذه الصفحة غير موجودة.", "error");
+        return;
+    }
 
     $$(".page-section").forEach(section => {
         section.classList.remove("active");
@@ -311,197 +129,231 @@ function showPage(pageName) {
 
     page.classList.add("active");
 
-    $$(".nav-item[data-page]").forEach(button => {
+    $$(".royal-nav [data-page]").forEach(button => {
         button.classList.toggle(
             "active",
             button.dataset.page === pageName
         );
     });
 
-    const title = $("#pageTitle");
+    const title = get("pageTitle");
 
     if (title) {
-        title.textContent = pageTitles[pageName] || "ROYAL CHESS";
+        const activeButton = $(
+            `.royal-nav [data-page="${pageName}"]`
+        );
+
+        title.textContent =
+            activeButton?.textContent.trim() || pageName;
     }
 
-    if (pageName === "history") {
-        renderFullHistory();
-    }
+    closeSidebar();
+}
 
-    if (pageName === "profile" || pageName === "statistics") {
-        updateStatisticsUI();
-    }
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+$$(".royal-nav [data-page]").forEach(button => {
+    button.addEventListener("click", () => {
+        showPage(button.dataset.page);
     });
+});
+
+/* ================= SIDEBAR ================= */
+
+function openSidebar() {
+    get("sidebar")?.classList.add("open");
 }
 
-function enterGameView() {
-    showPage("play");
-    renderBoard();
-    updateGameUI();
+function closeSidebar() {
+    get("sidebar")?.classList.remove("open");
 }
 
-function exitGame() {
-    if (aiThinking) {
-        clearTimeout(aiTimer);
-        aiThinking = false;
+function toggleSidebar() {
+    get("sidebar")?.classList.toggle("open");
+}
+
+get("sidebarToggle")?.addEventListener("click", toggleSidebar);
+get("menuButton")?.addEventListener("click", toggleSidebar);
+
+document.addEventListener("click", event => {
+    const sidebar = get("sidebar");
+
+    if (
+        window.innerWidth <= 850 &&
+        sidebar?.classList.contains("open") &&
+        !sidebar.contains(event.target) &&
+        !event.target.closest("#menuButton") &&
+        !event.target.closest("#sidebarToggle")
+    ) {
+        closeSidebar();
     }
+});
 
-    stopClock();
+/* ================= MODALS ================= */
 
-    showPage("home");
-}
+function openModal(id) {
+    const modal = get(id);
 
-
-/* =========================================================
-   08. MODAL SYSTEM
-   ========================================================= */
-
-function openModal(modal) {
     if (!modal) return;
 
     modal.classList.add("active");
+    modal.classList.add("show");
 }
 
-function closeModal(modal) {
+function closeModal(id) {
+    const modal = get(id);
+
     if (!modal) return;
 
     modal.classList.remove("active");
+    modal.classList.remove("show");
 }
 
-function closeAllModals() {
-    closeModal(computerModal);
-    closeModal(friendModal);
-}
+$$("[data-close]").forEach(button => {
+    button.addEventListener("click", () => {
+        const modal = button.closest(".modal, .royal-modal");
 
+        if (modal) {
+            modal.classList.remove("active", "show");
+        }
+    });
+});
 
-/* =========================================================
-   09. BOARD GENERATION
-   ========================================================= */
+$$(".modal").forEach(modal => {
+    modal.addEventListener("click", event => {
+        if (event.target === modal) {
+            modal.classList.remove("active", "show");
+        }
+    });
+});
+
+/* ================= BOARD ================= */
 
 function renderBoard() {
-    if (!boardElement) return;
+    const board = get("board");
 
-    boardElement.innerHTML = "";
+    if (!board) return;
 
-    const board = game.board();
+    board.innerHTML = "";
 
-    const files = flipped
+    const files = boardFlipped
         ? ["h", "g", "f", "e", "d", "c", "b", "a"]
         : ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-    const ranks = flipped
+    const ranks = boardFlipped
         ? [1, 2, 3, 4, 5, 6, 7, 8]
         : [8, 7, 6, 5, 4, 3, 2, 1];
 
-    ranks.forEach((rank, rowIndex) => {
-        files.forEach((file, columnIndex) => {
-            const square = `${file}${rank}`;
+    const boardState = game.board();
 
-            const piece = board[8 - rank][
-                file.charCodeAt(0) - 97
-            ];
+    ranks.forEach(rank => {
+        files.forEach(file => {
+            const squareName = file + rank;
 
-            const element = document.createElement("button");
+            const piece = game.get(squareName);
 
-            element.type = "button";
-            element.className = "square";
+            const square = document.createElement("div");
 
-            element.dataset.square = square;
+            const fileIndex = file.charCodeAt(0) - 97;
 
-            const isLight =
-                (file.charCodeAt(0) - 97 + rank) % 2 === 1;
+            square.className =
+                (fileIndex + rank) % 2 === 0
+                    ? "square light"
+                    : "square dark";
 
-            element.classList.add(
-                isLight ? "light" : "dark"
-            );
+            square.dataset.square = squareName;
 
-            if (selectedSquare === square) {
-                element.classList.add("selected");
+            if (selectedSquare === squareName) {
+                square.classList.add("selected");
             }
 
             if (
                 lastMove &&
-                (lastMove.from === square || lastMove.to === square)
+                (lastMove.from === squareName ||
+                 lastMove.to === squareName)
             ) {
-                element.classList.add("last-move");
+                square.classList.add("last-move");
+            }
+
+            const move = legalMoves.find(
+                item => item.to === squareName
+            );
+
+            if (selectedSquare && move) {
+                square.classList.add(
+                    piece ? "legal-capture" : "legal-move"
+                );
             }
 
             if (
-                game.isCheck() &&
                 piece &&
                 piece.type === "k" &&
-                piece.color === game.turn()
+                piece.color === game.turn() &&
+                game.in_check()
             ) {
-                element.classList.add("in-check");
-            }
-
-            const availableMove = legalMoves.find(
-                move => move.to === square
-            );
-
-            if (availableMove) {
-                element.classList.add(
-                    availableMove.captured
-                        ? "legal-capture"
-                        : "legal-move"
-                );
+                square.classList.add("in-check");
             }
 
             if (piece) {
                 const pieceElement = document.createElement("span");
 
                 pieceElement.className =
-                    `piece piece-${piece.color}`;
+                    piece.color === "w"
+                        ? "piece-w"
+                        : "piece-b";
 
                 pieceElement.textContent =
                     PIECES[piece.color][piece.type];
 
-                pieceElement.setAttribute("aria-hidden", "true");
+                pieceElement.draggable = true;
 
-                element.appendChild(pieceElement);
+                square.appendChild(pieceElement);
             }
 
-            if (columnIndex === 0) {
-                const coordinate = document.createElement("span");
-
-                coordinate.className = "coordinate rank-coordinate";
-                coordinate.textContent = rank;
-
-                element.appendChild(coordinate);
-            }
-
-            if (rowIndex === 7) {
-                const coordinate = document.createElement("span");
-
-                coordinate.className = "coordinate file-coordinate";
-                coordinate.textContent = file;
-
-                element.appendChild(coordinate);
-            }
-
-            element.addEventListener("click", () => {
-                handleSquareClick(square);
+            square.addEventListener("click", () => {
+                handleSquareClick(squareName);
             });
 
-            boardElement.appendChild(element);
+            square.addEventListener("dragstart", event => {
+                if (!piece || piece.color !== game.turn()) {
+                    event.preventDefault();
+                    return;
+                }
+
+                event.dataTransfer.setData(
+                    "text/plain",
+                    squareName
+                );
+            });
+
+            square.addEventListener("dragover", event => {
+                event.preventDefault();
+            });
+
+            square.addEventListener("drop", event => {
+                event.preventDefault();
+
+                const from = event.dataTransfer.getData(
+                    "text/plain"
+                );
+
+                if (from) {
+                    makeMove(from, squareName);
+                }
+            });
+
+            board.appendChild(square);
         });
     });
+
+    updateGameInformation();
 }
 
-
-/* =========================================================
-   10. SQUARE SELECTION
-   ========================================================= */
+/* ================= MOVE SELECTION ================= */
 
 function handleSquareClick(square) {
-    if (gameFinished || aiThinking) return;
+    if (!gameStarted || gameFinished || aiThinking) return;
 
     if (
-        currentMode === "computer" &&
+        gameMode === "computer" &&
         game.turn() !== playerColor
     ) {
         return;
@@ -509,64 +361,71 @@ function handleSquareClick(square) {
 
     const piece = game.get(square);
 
-    if (selectedSquare) {
-        const possibleMove = legalMoves.find(
-            move => move.to === square
-        );
-
-        if (possibleMove) {
-            executeMove(selectedSquare, square);
-            return;
+    if (!selectedSquare) {
+        if (piece && piece.color === game.turn()) {
+            selectSquare(square);
         }
-    }
-
-    if (piece && piece.color === game.turn()) {
-        selectedSquare = square;
-
-        legalMoves = game.moves({
-            square,
-            verbose: true
-        });
-
-        renderBoard();
 
         return;
     }
 
-    selectedSquare = null;
-    legalMoves = [];
+    if (selectedSquare === square) {
+        clearSelection();
+        return;
+    }
+
+    if (piece && piece.color === game.turn()) {
+        selectSquare(square);
+        return;
+    }
+
+    makeMove(selectedSquare, square);
+}
+
+function selectSquare(square) {
+    selectedSquare = square;
+
+    legalMoves = game.moves({
+        square: square,
+        verbose: true
+    });
 
     renderBoard();
 }
 
+function clearSelection() {
+    selectedSquare = null;
+    legalMoves = [];
+    renderBoard();
+}
 
-/* =========================================================
-   11. MOVE EXECUTION
-   ========================================================= */
+/* ================= MAKE MOVE ================= */
 
-function executeMove(from, to, promotion = "q") {
-    if (gameFinished) return;
+function makeMove(from, to, promotion = "q") {
+    if (!gameStarted || gameFinished || aiThinking) return false;
 
-    const piece = game.get(from);
-
-    if (!piece) return;
+    if (
+        gameMode === "computer" &&
+        game.turn() !== playerColor
+    ) {
+        return false;
+    }
 
     let move;
 
     try {
         move = game.move({
-            from,
-            to,
-            promotion
+            from: from,
+            to: to,
+            promotion: promotion
         });
     } catch (error) {
         move = null;
     }
 
     if (!move) {
-        showToast("هذه النقلة غير قانونية", "error");
-        playSound("error");
-        return;
+        toast("هذه النقلة غير قانونية.", "error");
+        return false;
     }
 
     lastMove = {
@@ -574,255 +433,215 @@ function executeMove(from, to, promotion = "q") {
         to: move.to
     };
 
-    moveHistory.push(move);
+    moveHistory = game.history({
+        verbose: true
+    });
 
     selectedSquare = null;
     legalMoves = [];
 
-    playSound(move.captured ? "capture" : "move");
-
-    if (game.isCheck()) {
-        playSound("check");
-    }
-
     renderBoard();
-    updateGameUI();
-
-    if (game.game_over()) {
-        finishGame();
-        return;
-    }
+    updateMoveHistory();
+    updateGameInformation();
+    checkGameOver();
 
     if (
-        currentMode === "computer" &&
+        gameStarted &&
+        !gameFinished &&
+        gameMode === "computer" &&
         game.turn() !== playerColor
     ) {
-        scheduleAI();
+        setTimeout(computerMove, 350);
     }
+
+    return true;
 }
 
-
-/* =========================================================
-   12. GAME INFORMATION
-   ========================================================= */
-
-function updateGameUI() {
-    if (!game) return;
-
-    if (currentTurn) {
-        currentTurn.textContent =
-            game.turn() === "w" ? "الأبيض" : "الأسود";
-    }
-
-    if (moveCount) {
-        moveCount.textContent = game.history().length;
-    }
-
-    if (lastMoveElement) {
-        const history = game.history();
-
-        lastMoveElement.textContent =
-            history.length ? history[history.length - 1] : "—";
-    }
-
-    if (matchState) {
-        matchState.textContent = gameFinished
-            ? "انتهت المباراة"
-            : "قيد اللعب";
-    }
-
-    updateStatus();
-    updateMoveHistory();
-    updateClocksUI();
-    updateControlButtons();
-}
-
-function updateStatus() {
-    if (!gameStatus) return;
-
-    let message = "";
-
-    if (gameFinished) {
-        message = "انتهت المباراة";
-    } else if (game.isCheckmate()) {
-        message = "كش مات!";
-    } else if (game.isCheck()) {
-        message = "كش!";
-    } else if (game.in_draw()) {
-        message = "تعادل";
-    } else {
-        message = game.turn() === "w"
-            ? "دور الأبيض"
-            : "دور الأسود";
-    }
-
-    gameStatus.innerHTML = `
-        <span class="status-dot"></span>
-        <span>${message}</span>
-    `;
-}
+/* ================= MOVE HISTORY ================= */
 
 function updateMoveHistory() {
-    if (!moveHistoryElement) return;
+    const history = get("moveHistory");
 
-    const history = game.history();
+    if (!history) return;
 
-    if (!history.length) {
-        moveHistoryElement.innerHTML = `
-            <div class="empty-state compact">
-                <i class="fa-solid fa-chess-pawn"></i>
-                <p>ستظهر النقلات هنا</p>
-            </div>
-        `;
+    history.innerHTML = "";
 
-        return;
+    for (let i = 0; i < moveHistory.length; i += 2) {
+        const row = document.createElement("div");
+
+        const number = document.createElement("span");
+        const white = document.createElement("span");
+        const black = document.createElement("span");
+
+        number.textContent = `${Math.floor(i / 2) + 1}.`;
+
+        white.textContent = moveHistory[i].san;
+
+        black.textContent =
+            moveHistory[i + 1]?.san || "";
+
+        row.append(number, white, black);
+        history.appendChild(row);
     }
 
-    const rows = [];
-
-    for (let i = 0; i < history.length; i += 2) {
-        const number = Math.floor(i / 2) + 1;
-        const white = history[i] || "";
-        const black = history[i + 1] || "";
-
-        rows.push(`
-            <div class="move-row">
-                <span class="move-number">${number}.</span>
-                <span class="white-move">${white}</span>
-                <span class="black-move">${black}</span>
-            </div>
-        `);
-    }
-
-    moveHistoryElement.innerHTML = rows.join("");
-
-    moveHistoryElement.scrollTop =
-        moveHistoryElement.scrollHeight;
+    history.scrollTop = history.scrollHeight;
 }
 
-function updateControlButtons() {
-    if (undoBtn) {
-        undoBtn.disabled = moveHistory.length === 0;
+/* ================= GAME INFORMATION ================= */
+
+function updateGameInformation() {
+    const turn = game.turn() === "w" ? "الأبيض" : "الأسود";
+
+    if (get("currentTurn")) {
+        get("currentTurn").textContent = turn;
     }
 
-    if (resignBtn) {
-        resignBtn.disabled = gameFinished;
+    if (get("moveCount")) {
+        get("moveCount").textContent =
+            Math.ceil(game.history().length / 2);
     }
-}
 
-
-/* =========================================================
-   13. CLOCK SYSTEM
-   ========================================================= */
-
-function stopClock() {
-    if (clockInterval) {
-        clearInterval(clockInterval);
-        clockInterval = null;
+    if (get("lastMove")) {
+        get("lastMove").textContent = lastMove
+            ? `${lastMove.from} → ${lastMove.to}`
+            : "لا توجد نقلات";
     }
-}
 
-function startClock() {
-    stopClock();
+    if (get("matchState")) {
+        get("matchState").textContent =
+            gameStarted ? "جارية" : "لم تبدأ";
+    }
 
-    if (gameFinished) return;
+    if (get("matchType")) {
+        get("matchType").textContent =
+            gameMode === "computer"
+                ? "ضد الكمبيوتر"
+                : gameMode === "local"
+                ? "لاعبان محليًا"
+                : "لعبة صديق";
+    }
 
-    clockInterval = setInterval(() => {
-        const turn = game.turn();
-
-        clocks[turn]--;
-
-        if (clocks[turn] <= 0) {
-            clocks[turn] = 0;
-
-            stopClock();
-
-            finishGame(
-                turn === "w" ? "b" : "w",
-                "timeout"
-            );
-
-            return;
+    if (get("gameStatus")) {
+        if (!gameStarted) {
+            get("gameStatus").textContent =
+                "ابدأ مباراة جديدة للعب.";
+        } else if (game.in_check()) {
+            get("gameStatus").textContent =
+                `كش! ${turn} في خطر.`;
+        } else {
+            get("gameStatus").textContent =
+                `${turn} عليه الدور.`;
         }
-
-        updateClocksUI();
-
-    }, 1000);
-}
-
-function updateClocksUI() {
-    if (whiteClock) {
-        whiteClock.textContent = formatTime(clocks.w);
-
-        whiteClock.classList.toggle(
-            "active-clock",
-            !gameFinished && game.turn() === "w"
-        );
-    }
-
-    if (blackClock) {
-        blackClock.textContent = formatTime(clocks.b);
-
-        blackClock.classList.toggle(
-            "active-clock",
-            !gameFinished && game.turn() === "b"
-        );
     }
 }
 
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remaining = seconds % 60;
+/* ================= GAME OVER ================= */
 
-    return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
+function checkGameOver() {
+    if (!game.game_over()) return;
+
+    gameFinished = true;
+    gameStarted = false;
+
+    let message = "انتهت المباراة.";
+
+    if (game.in_checkmate()) {
+        message =
+            game.turn() === "w"
+                ? "كش مات! الأسود فاز."
+                : "كش مات! الأبيض فاز.";
+    } else if (game.in_stalemate()) {
+        message = "تعادل بسبب الجمود.";
+    } else if (game.in_threefold_repetition()) {
+        message = "تعادل بسبب تكرار الوضعية.";
+    } else if (game.insufficient_material()) {
+        message = "تعادل بسبب عدم كفاية القطع.";
+    } else if (game.in_draw()) {
+        message = "انتهت المباراة بالتعادل.";
+    }
+
+    if (get("gameStatus")) {
+        get("gameStatus").textContent = message;
+    }
+
+    toast(message, "success");
 }
 
+/* ================= START GAME ================= */
 
-/* =========================================================
-   14. AI ENGINE
-   ========================================================= */
+function startNewGame(mode = "computer", color = "w") {
+    game = new Chess();
+
+    selectedSquare = null;
+    legalMoves = [];
+    lastMove = null;
+    moveHistory = [];
+
+    gameMode = mode;
+    playerColor = color;
+
+    gameStarted = true;
+    gameFinished = false;
+    aiThinking = false;
+
+    boardFlipped = mode === "computer" && color === "b";
+
+    renderBoard();
+    updateMoveHistory();
+    updateGameInformation();
+
+    if (
+        mode === "computer" &&
+        playerColor === "b"
+    ) {
+        setTimeout(computerMove, 400);
+    }
+
+    if (get("gameView")) {
+        get("gameView").classList.add("active");
+    }
+
+    $$(".page-section").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    closeModal("computerModal");
+    closeModal("friendModal");
+
+    toast("بدأت المباراة بنجاح.", "success");
+}
+
+/* ================= COMPUTER ENGINE ================= */
 
 function evaluateBoard() {
-    if (game.isCheckmate()) {
-        return game.turn() === "w"
-            ? -100000
-            : 100000;
+    if (game.in_checkmate()) {
+        return game.turn() === "w" ? -100000 : 100000;
     }
 
-    if (game.game_over()) return 0;
+    if (game.in_draw()) return 0;
 
     let score = 0;
 
     const board = game.board();
 
-    board.forEach((row, rank) => {
-        row.forEach((piece, file) => {
-            if (!piece) return;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = board[row][col];
+
+            if (!piece) continue;
 
             const value = PIECE_VALUES[piece.type];
 
-            const advancement =
-                piece.type === "p"
-                    ? (piece.color === "w" ? 6 - rank : rank - 1) * 8
-                    : 0;
-
-            const centerBonus =
-                (3.5 - Math.abs(3.5 - file)) * 3 +
-                (3.5 - Math.abs(3.5 - rank)) * 3;
-
-            const pieceScore =
-                value + advancement + centerBonus;
-
             score += piece.color === "w"
-                ? pieceScore
-                : -pieceScore;
-        });
-    });
+                ? value
+                : -value;
+        }
+    }
 
     return score;
 }
 
-function minimax(depth, alpha, beta, maximizingPlayer) {
+function minimax(depth, alpha, beta, maximizing) {
     if (depth === 0 || game.game_over()) {
         return evaluateBoard();
     }
@@ -831,8 +650,8 @@ function minimax(depth, alpha, beta, maximizingPlayer) {
         verbose: true
     });
 
-    if (maximizingPlayer) {
-        let bestScore = -Infinity;
+    if (maximizing) {
+        let best = -Infinity;
 
         for (const move of moves) {
             game.move(move);
@@ -846,16 +665,16 @@ function minimax(depth, alpha, beta, maximizingPlayer) {
 
             game.undo();
 
-            bestScore = Math.max(bestScore, score);
-            alpha = Math.max(alpha, score);
+            best = Math.max(best, score);
+            alpha = Math.max(alpha, best);
 
             if (beta <= alpha) break;
         }
 
-        return bestScore;
+        return best;
     }
 
-    let bestScore = Infinity;
+    let best = Infinity;
 
     for (const move of moves) {
         game.move(move);
@@ -869,48 +688,44 @@ function minimax(depth, alpha, beta, maximizingPlayer) {
 
         game.undo();
 
-        bestScore = Math.min(bestScore, score);
-        beta = Math.min(beta, score);
+        best = Math.min(best, score);
+        beta = Math.min(beta, best);
 
         if (beta <= alpha) break;
     }
 
-    return bestScore;
+    return best;
 }
 
-function getBestMove() {
+function chooseComputerMove() {
     const moves = game.moves({
         verbose: true
     });
 
     if (!moves.length) return null;
 
-    const depth = ROYAL_CONFIG.aiDepth[difficulty] || 2;
-
     let bestMove = null;
-
-    const maximizingPlayer = game.turn() === "w";
-
-    let bestScore = maximizingPlayer
+    let bestScore = game.turn() === "w"
         ? -Infinity
         : Infinity;
+
+    const maximizing = game.turn() === "w";
 
     for (const move of moves) {
         game.move(move);
 
         const score = minimax(
-            depth - 1,
+            Math.max(0, difficulty - 1),
             -Infinity,
             Infinity,
-            !maximizingPlayer
+            !maximizing
         );
 
         game.undo();
 
         if (
-            maximizingPlayer
-                ? score > bestScore
-                : score < bestScore
+            maximizing && score > bestScore ||
+            !maximizing && score < bestScore
         ) {
             bestScore = score;
             bestMove = move;
@@ -920,634 +735,380 @@ function getBestMove() {
     return bestMove;
 }
 
-function scheduleAI() {
-    if (gameFinished || currentMode !== "computer") return;
-
-    aiThinking = true;
-
-    updateStatus();
-
-    aiTimer = setTimeout(() => {
-        if (gameFinished) {
-            aiThinking = false;
-            return;
-        }
-
-        const move = getBestMove();
-
-        aiThinking = false;
-
-        if (!move) {
-            finishGame();
-            return;
-        }
-
-        executeMove(move.from, move.to, move.promotion || "q");
-
-    }, ROYAL_CONFIG.aiDelay);
-}
-
-
-/* =========================================================
-   15. GAME MODES
-   ========================================================= */
-
-function startLocalGame() {
-    resetGameState();
-
-    currentMode = "local";
-
-    if (matchType) {
-        matchType.textContent = "لعب محلي";
-    }
-
-    if ($("#whitePlayer")) {
-        $("#whitePlayer").textContent = "White Player";
-    }
-
-    if ($("#blackPlayer")) {
-        $("#blackPlayer").textContent = "Black Player";
-    }
-
-    enterGameView();
-    startClock();
-
-    showToast("بدأت المباراة");
-}
-
-function startComputerGame() {
-    difficulty = Number(difficultySelect?.value || 2);
-
-    playerColor = playerColorSelect?.value || "w";
-
-    if (playerColor === "random") {
-        playerColor = Math.random() < 0.5 ? "w" : "b";
-    }
-
-    resetGameState();
-
-    currentMode = "computer";
-
-    if (matchType) {
-        matchType.textContent = "ضد الكمبيوتر";
-    }
-
-    if ($("#whitePlayer")) {
-        $("#whitePlayer").textContent =
-            playerColor === "w" ? "You" : "Royal AI";
-    }
-
-    if ($("#blackPlayer")) {
-        $("#blackPlayer").textContent =
-            playerColor === "b" ? "You" : "Royal AI";
-    }
-
-    closeModal(computerModal);
-
-    enterGameView();
-    startClock();
-
-    showToast("بدأ التحدي ضد الكمبيوتر");
-
-    if (game.turn() !== playerColor) {
-        scheduleAI();
-    }
-}
-
-
-/* =========================================================
-   16. GAME RESET
-   ========================================================= */
-
-function resetGameState() {
-    stopClock();
-
-    clearTimeout(aiTimer);
-
-    game = new Chess();
-
-    selectedSquare = null;
-    legalMoves = [];
-    lastMove = null;
-
-    moveHistory = [];
-
-    gameFinished = false;
-    aiThinking = false;
-
-    flipped = false;
-
-    clocks = {
-        w: ROYAL_CONFIG.defaultTime,
-        b: ROYAL_CONFIG.defaultTime
-    };
-
-    renderBoard();
-    updateGameUI();
-}
-
-function restartGame() {
-    if (currentMode === "computer") {
-        startComputerGame();
+function computerMove() {
+    if (
+        !gameStarted ||
+        gameFinished ||
+        game.game_over() ||
+        game.turn() === playerColor
+    ) {
         return;
     }
 
-    startLocalGame();
-}
+    aiThinking = true;
 
-
-/* =========================================================
-   17. UNDO MOVE
-   ========================================================= */
-
-function undoMove() {
-    if (!moveHistory.length || gameFinished) return;
-
-    clearTimeout(aiTimer);
-    aiThinking = false;
-
-    if (currentMode === "computer") {
-        if (game.turn() === playerColor) {
-            game.undo();
-            moveHistory.pop();
-        }
-
-        if (game.history().length) {
-            game.undo();
-            moveHistory.pop();
-        }
-    } else {
-        game.undo();
-        moveHistory.pop();
+    if (get("gameStatus")) {
+        get("gameStatus").textContent =
+            "الكمبيوتر يفكر...";
     }
 
-    selectedSquare = null;
-    legalMoves = [];
+    setTimeout(() => {
+        const move = chooseComputerMove();
+
+        if (move) {
+            game.move(move);
+
+            lastMove = {
+                from: move.from,
+                to: move.to
+            };
+
+            moveHistory = game.history({
+                verbose: true
+            });
+        }
+
+        aiThinking = false;
+
+        selectedSquare = null;
+        legalMoves = [];
+
+        renderBoard();
+        updateMoveHistory();
+        updateGameInformation();
+        checkGameOver();
+
+    }, 100);
+}
+
+/* ================= GAME CONTROLS ================= */
+
+get("undoBtn")?.addEventListener("click", () => {
+    if (!gameStarted || aiThinking) return;
+
+    if (game.history().length === 0) return;
+
+    game.undo();
+
+    if (
+        gameMode === "computer" &&
+        game.turn() !== playerColor &&
+        game.history().length > 0
+    ) {
+        game.undo();
+    }
+
+    lastMove = null;
 
     const history = game.history({
         verbose: true
     });
 
-    lastMove = history.length
-        ? {
-            from: history[history.length - 1].from,
-            to: history[history.length - 1].to
-        }
-        : null;
+    if (history.length) {
+        const previous = history[history.length - 1];
 
-    renderBoard();
-    updateGameUI();
-
-    if (
-        currentMode === "computer" &&
-        game.turn() !== playerColor
-    ) {
-        scheduleAI();
+        lastMove = {
+            from: previous.from,
+            to: previous.to
+        };
     }
-}
 
+    moveHistory = history;
 
-/* =========================================================
-   18. FLIP BOARD
-   ========================================================= */
+    gameFinished = false;
+    gameStarted = true;
 
-function flipBoard() {
-    flipped = !flipped;
+    clearSelection();
+    updateMoveHistory();
+    updateGameInformation();
+
+    toast("تم التراجع عن النقلة.");
+});
+
+get("restartBtn")?.addEventListener("click", () => {
+    if (!gameStarted && game.history().length === 0) return;
+
+    startNewGame(gameMode, playerColor);
+});
+
+get("flipBoardBtn")?.addEventListener("click", () => {
+    boardFlipped = !boardFlipped;
     renderBoard();
-}
+});
 
+get("resignBtn")?.addEventListener("click", () => {
+    if (!gameStarted || gameFinished) return;
 
-/* =========================================================
-   19. GAME FINISH
-   ========================================================= */
-
-function finishGame(winner = null, reason = "normal") {
-    if (gameFinished) return;
-
+    gameStarted = false;
     gameFinished = true;
 
-    stopClock();
-    clearTimeout(aiTimer);
+    const message = "استسلم اللاعب. انتهت المباراة.";
 
-    aiThinking = false;
-
-    let result = "draw";
-
-    if (winner) {
-        result = winner;
-    } else if (game.isCheckmate()) {
-        result = game.turn() === "w" ? "b" : "w";
-    } else if (game.in_draw()) {
-        result = "draw";
+    if (get("gameStatus")) {
+        get("gameStatus").textContent = message;
     }
 
-    if (reason === "resign") {
-        result = winner;
-    }
+    toast(message);
+});
 
-    recordResult(result, reason);
+get("exitGameView")?.addEventListener("click", () => {
+    get("gameView")?.classList.remove("active");
+    showPage("home");
+});
 
-    updateGameUI();
-    renderBoard();
+/* ================= COMPUTER MODAL ================= */
 
-    if (result === "draw") {
-        showToast("انتهت المباراة بالتعادل");
-    } else {
-        const message = result === "w"
-            ? "الأبيض فاز!"
-            : "الأسود فاز!";
+get("computerBtn")?.addEventListener("click", () => {
+    openModal("computerModal");
+});
 
-        showToast(message, "success");
-        playSound("win");
-    }
-}
+get("startBtn")?.addEventListener("click", () => {
+    openModal("computerModal");
+});
 
-function recordResult(result, reason) {
-    statistics.games++;
+get("confirmComputer")?.addEventListener("click", () => {
+    const selectedDifficulty = get("difficulty")?.value || "2";
+    const selectedColor = get("playerColor")?.value || "w";
 
-    if (result === "draw") {
-        statistics.draws++;
-    } else {
-        const playerWon =
-            currentMode === "computer"
-                ? result === playerColor
-                : result === "w";
-
-        if (playerWon) {
-            statistics.wins++;
-            statistics.rating += 10;
-        } else {
-            statistics.losses++;
-            statistics.rating = Math.max(
-                100,
-                statistics.rating - 8
-            );
-        }
-    }
-
-    statistics.level = Math.max(
+    difficulty = Math.max(
         1,
-        Math.floor(statistics.rating / 1000)
+        Math.min(3, Number(selectedDifficulty))
     );
 
-    statistics.history.unshift({
-        mode: currentMode,
-        result,
-        reason,
-        date: new Date().toISOString(),
-        moves: game.history(),
-        pgn: game.pgn()
+    startNewGame("computer", selectedColor);
+});
+
+/* ================= LOCAL GAME ================= */
+
+$$("[data-mode='local']").forEach(button => {
+    button.addEventListener("click", () => {
+        startNewGame("local", "w");
     });
+});
 
-    statistics.history = statistics.history.slice(0, 50);
+/* ================= FRIEND ROOMS ================= */
 
-    saveStatistics();
+function generateRoomCode() {
+    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-    updateStatisticsUI();
-    renderRecentMatches();
+    let code = "";
+
+    for (let i = 0; i < 6; i++) {
+        code += characters[
+            Math.floor(Math.random() * characters.length)
+        ];
+    }
+
+    return code;
 }
 
+get("friendBtn")?.addEventListener("click", () => {
+    openModal("friendModal");
+});
 
-/* =========================================================
-   20. RESIGN
-   ========================================================= */
+get("createRoomBtn")?.addEventListener("click", () => {
+    roomCode = generateRoomCode();
 
-function resignGame() {
-    if (gameFinished) return;
+    if (get("roomCode")) {
+        get("roomCode").textContent = roomCode;
+    }
 
-    const confirmed = confirm("هل أنت متأكد من الاستسلام؟");
+    toast("تم إنشاء رمز الغرفة محليًا: " + roomCode, "success");
+});
+
+get("joinRoomBtn")?.addEventListener("click", () => {
+    const input = get("joinRoomCode");
+
+    const code = input?.value.trim().toUpperCase();
+
+    if (!code || code.length !== 6) {
+        toast("أدخل رمزًا صحيحًا مكونًا من 6 أحرف.", "error");
+        return;
+    }
+
+    toast(
+        "واجهة الانضمام جاهزة، لكن اللعب بين جهازين يحتاج خادمًا مشتركًا.",
+        "info"
+    );
+});
+
+/* ================= HOME MODE BUTTONS ================= */
+
+$$("[data-mode='computer']").forEach(button => {
+    button.addEventListener("click", () => {
+        openModal("computerModal");
+    });
+});
+
+$$("[data-mode='friend']").forEach(button => {
+    button.addEventListener("click", () => {
+        openModal("friendModal");
+    });
+});
+
+/* ================= SETTINGS ================= */
+
+function saveSetting(key, value) {
+    try {
+        localStorage.setItem(
+            "royal-chess-" + key,
+            String(value)
+        );
+    } catch (error) {
+        console.warn("Could not save setting:", error);
+    }
+}
+
+function readSetting(key, fallback) {
+    try {
+        return localStorage.getItem(
+            "royal-chess-" + key
+        ) ?? fallback;
+    } catch (error) {
+        return fallback;
+    }
+}
+
+const boardThemes = {
+    green: ["#e8dfc9", "#789078"],
+    brown: ["#f0d9b5", "#b58863"],
+    blue: ["#dee8f5", "#6686aa"],
+    purple: ["#e7dff2", "#8874a8"]
+};
+
+function applyBoardTheme(theme) {
+    const colors = boardThemes[theme];
+
+    if (!colors) return;
+
+    const style = document.createElement("style");
+
+    style.id = "royal-board-theme";
+
+    style.textContent = `
+        #board .square.light { background: ${colors[0]} !important; }
+        #board .square.dark { background: ${colors[1]} !important; }
+    `;
+
+    get("royal-board-theme")?.remove();
+
+    document.head.appendChild(style);
+}
+
+const savedBoardTheme = readSetting("boardTheme", "green");
+
+if (get("boardTheme")) {
+    get("boardTheme").value = savedBoardTheme;
+}
+
+applyBoardTheme(savedBoardTheme);
+
+get("boardTheme")?.addEventListener("change", event => {
+    applyBoardTheme(event.target.value);
+    saveSetting("boardTheme", event.target.value);
+    renderBoard();
+});
+
+get("showLegalMoves")?.addEventListener("change", event => {
+    saveSetting("showLegalMoves", event.target.checked);
+});
+
+get("showLastMove")?.addEventListener("change", event => {
+    saveSetting("showLastMove", event.target.checked);
+});
+
+get("autoFlipBoard")?.addEventListener("change", event => {
+    saveSetting("autoFlipBoard", event.target.checked);
+});
+
+get("soundSetting")?.addEventListener("change", event => {
+    saveSetting("soundSetting", event.target.checked);
+});
+
+get("effectsSetting")?.addEventListener("change", event => {
+    saveSetting("effectsSetting", event.target.checked);
+});
+
+get("languageSetting")?.addEventListener("change", event => {
+    saveSetting("languageSetting", event.target.value);
+});
+
+get("animationSetting")?.addEventListener("change", event => {
+    saveSetting("animationSetting", event.target.value);
+});
+
+/* ================= RESTORE SETTINGS ================= */
+
+function restoreCheckbox(id, key, fallback = true) {
+    const element = get(id);
+
+    if (!element) return;
+
+    element.checked =
+        readSetting(key, String(fallback)) === "true";
+}
+
+restoreCheckbox("showLegalMoves", "showLegalMoves");
+restoreCheckbox("showLastMove", "showLastMove");
+restoreCheckbox("autoFlipBoard", "autoFlipBoard");
+restoreCheckbox("soundSetting", "soundSetting");
+restoreCheckbox("effectsSetting", "effectsSetting");
+
+if (get("languageSetting")) {
+    get("languageSetting").value =
+        readSetting("languageSetting", "ar");
+}
+
+if (get("animationSetting")) {
+    get("animationSetting").value =
+        readSetting("animationSetting", "normal");
+}
+
+/* ================= RESET SETTINGS ================= */
+
+get("resetSettingsBtn")?.addEventListener("click", () => {
+    const confirmed = confirm(
+        "هل تريد إعادة جميع الإعدادات إلى الوضع الافتراضي؟"
+    );
 
     if (!confirmed) return;
 
-    const winner = game.turn() === "w" ? "b" : "w";
+    Object.keys(localStorage)
+        .filter(key => key.startsWith("royal-chess-"))
+        .forEach(key => localStorage.removeItem(key));
 
-    finishGame(winner, "resign");
-}
-
-
-/* =========================================================
-   21. MATCH HISTORY
-   ========================================================= */
-
-function renderRecentMatches() {
-    const container = $("#recentMatches");
-
-    if (!container) return;
-
-    if (!statistics.history.length) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-chess"></i>
-                <h3>لا توجد مباريات حتى الآن</h3>
-                <p>ابدأ أول مباراة لك لتظهر هنا.</p>
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = statistics.history
-        .slice(0, 5)
-        .map((match, index) => {
-            const resultText =
-                match.result === "draw"
-                    ? "تعادل"
-                    : match.result === "w"
-                        ? "فوز الأبيض"
-                        : "فوز الأسود";
-
-            return `
-                <div class="history-item">
-                    <div class="history-item-icon">
-                        <i class="fa-solid fa-chess"></i>
-                    </div>
-
-                    <div class="history-item-details">
-                        <strong>مباراة ${index + 1}</strong>
-                        <span>${match.mode} · ${resultText}</span>
-                    </div>
-
-                    <span class="history-date">
-                        ${new Date(match.date).toLocaleDateString("ar-SA")}
-                    </span>
-                </div>
-            `;
-        })
-        .join("");
-}
-
-function renderFullHistory() {
-    const container = $("#fullMatchHistory");
-
-    if (!container) return;
-
-    if (!statistics.history.length) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <h3>الأرشيف فارغ</h3>
-                <p>ستظهر مبارياتك السابقة هنا.</p>
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = statistics.history
-        .map((match, index) => `
-            <div class="history-item">
-                <div class="history-item-icon">
-                    <i class="fa-solid fa-chess"></i>
-                </div>
-
-                <div class="history-item-details">
-                    <strong>المباراة ${index + 1}</strong>
-                    <span>${match.mode}</span>
-                    <span>${match.moves.length} نقلة</span>
-                </div>
-
-                <span class="history-date">
-                    ${new Date(match.date).toLocaleDateString("ar-SA")}
-                </span>
-            </div>
-        `)
-        .join("");
-}
-
-
-/* =========================================================
-   22. ROOM SYSTEM PLACEHOLDER
-   ========================================================= */
-
-function createRoom() {
-    showToast(
-        "نظام الغرف يحتاج ربط Backend قبل تفعيله",
-        "info"
-    );
-}
-
-function joinRoom() {
-    const code = roomCode?.value.trim();
-
-    if (!code) {
-        showToast("أدخل رمز الغرفة أولاً", "error");
-        return;
-    }
-
-    showToast(
-        "الانضمام للغرف غير متاح حتى ربط الخادم",
-        "info"
-    );
-}
-
-
-/* =========================================================
-   23. FULLSCREEN
-   ========================================================= */
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen?.()
-            .catch(() => {
-                showToast("تعذر تفعيل ملء الشاشة");
-            });
-    } else {
-        document.exitFullscreen?.();
-    }
-}
-
-
-/* =========================================================
-   24. SETTINGS
-   ========================================================= */
-
-function toggleSound() {
-    soundEnabled = !soundEnabled;
-
-    if (soundToggle) {
-        soundToggle.innerHTML = soundEnabled
-            ? '<i class="fa-solid fa-volume-high"></i>'
-            : '<i class="fa-solid fa-volume-xmark"></i>';
-    }
-
-    const soundSetting = $("#soundSetting");
-
-    if (soundSetting) {
-        soundSetting.checked = soundEnabled;
-    }
-
-    showToast(
-        soundEnabled ? "تم تشغيل الصوت" : "تم إيقاف الصوت"
-    );
-}
-
-function updateSettings() {
-    const soundSetting = $("#soundSetting");
-    const animationSetting = $("#animationSetting");
-
-    if (soundSetting) {
-        soundEnabled = soundSetting.checked;
-    }
-
-    if (animationSetting) {
-        document.body.classList.toggle(
-            "reduced-motion",
-            !animationSetting.checked
-        );
-    }
-}
-
-
-/* =========================================================
-   25. EVENT LISTENERS
-   ========================================================= */
-
-// Navigation
-
-$$("[data-page]").forEach(button => {
-    button.addEventListener("click", () => {
-        showPage(button.dataset.page);
-    });
+    location.reload();
 });
 
-
-// Start buttons
-
-startBtn?.addEventListener("click", () => {
-    startLocalGame();
-});
-
-computerBtn?.addEventListener("click", () => {
-    openModal(computerModal);
-});
-
-
-// Mode buttons
-
-$$("[data-open]").forEach(button => {
-    button.addEventListener("click", () => {
-        const modal = $(`#${button.dataset.open}`);
-        openModal(modal);
-    });
-});
-
-$$("[data-action='local']").forEach(button => {
-    button.addEventListener("click", startLocalGame);
-});
-
-
-// Modal close buttons
-
-$$("[data-close]").forEach(button => {
-    button.addEventListener("click", () => {
-        const modal = $(`#${button.dataset.close}`);
-        closeModal(modal);
-    });
-});
-
-
-// Click outside modal
-
-$$(".modal-overlay").forEach(modal => {
-    modal.addEventListener("click", event => {
-        if (event.target === modal) {
-            closeModal(modal);
-        }
-    });
-});
-
-
-// Computer game
-
-confirmComputer?.addEventListener("click", startComputerGame);
-
-
-// Friend rooms
-
-createRoomBtn?.addEventListener("click", createRoom);
-joinRoomBtn?.addEventListener("click", joinRoom);
-
-
-// Game controls
-
-exitGameView?.addEventListener("click", exitGame);
-
-undoBtn?.addEventListener("click", undoMove);
-
-restartBtn?.addEventListener("click", restartGame);
-
-flipBoardBtn?.addEventListener("click", flipBoard);
-
-resignBtn?.addEventListener("click", resignGame);
-
-
-// Sound
-
-soundToggle?.addEventListener("click", toggleSound);
-
-
-// Fullscreen
-
-fullscreenBtn?.addEventListener("click", toggleFullscreen);
-
-
-// Settings
-
-$("#soundSetting")?.addEventListener("change", updateSettings);
-
-$("#animationSetting")?.addEventListener("change", updateSettings);
-
-
-// Keyboard shortcuts
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        closeAllModals();
-    }
-
-    if (
-        event.key.toLowerCase() === "f" &&
-        !event.target.matches("input, textarea, select")
-    ) {
-        toggleFullscreen();
-    }
-});
-
-
-/* =========================================================
-   26. INITIALIZATION
-   ========================================================= */
+/* ================= INITIALIZATION ================= */
 
 function initializeRoyalChess() {
     if (typeof Chess !== "function") {
-        showToast("تعذر تحميل محرك الشطرنج", "error");
-        console.error("Chess.js is not available.");
+        console.error(
+            "Chess.js library is missing. Load chess.js 0.10.3 first."
+        );
+
+        toast("تعذر تحميل محرك الشطرنج.", "error");
         return;
     }
 
-    loadStatistics();
-
     renderBoard();
+    updateMoveHistory();
+    updateGameInformation();
 
-    updateGameUI();
-
-    renderRecentMatches();
-
-    renderFullHistory();
-
-    showPage("home");
+    if (get("homePage")) {
+        showPage("home");
+    }
 
     console.log(
         "%c ROYAL CHESS ",
-        "background:#111827;color:#d8b56f;font-size:20px;font-weight:bold;padding:10px;"
+        "background:#17243b;color:#f2d99b;padding:10px;font-weight:bold;"
     );
 
     console.log("Royal Chess initialized successfully.");
 }
 
-initializeRoyalChess();
-
-
-/* =========================================================
-   END OF ROYAL CHESS JAVASCRIPT
-   ========================================================= */
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeRoyalChess
+);
