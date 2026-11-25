@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#090d16">
+    <meta name="theme-color" content="#080b13">
 
-    <title>ROYAL CHESS</title>
+    <title>ROYAL CHESS | Beyond The Board</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- CSS -->
+    <!-- Styles -->
     <link rel="stylesheet" href="Chess.css">
 
     <!-- Chess Engine -->
@@ -25,301 +25,551 @@
 
 <body>
 
-<!-- =========================
+<!-- =====================================
      LOADING SCREEN
-========================= -->
+===================================== -->
 
 <div class="loading-screen" id="loadingScreen">
+    <div class="loading-orbit orbit-one"></div>
+    <div class="loading-orbit orbit-two"></div>
+
     <div class="loading-content">
-        <div class="loading-crown">♛</div>
-        <h1>ROYAL CHESS</h1>
+        <div class="loading-emblem">♛</div>
+        <h1>ROYAL <span>CHESS</span></h1>
+        <p>BEYOND THE BOARD</p>
+
         <div class="loading-line">
             <div class="loading-progress"></div>
         </div>
-        <p>LOADING</p>
+
+        <span class="loading-status">INITIALIZING SYSTEM</span>
     </div>
 </div>
 
 
-<!-- =========================
-     APPLICATION
-========================= -->
+<!-- =====================================
+     APP
+===================================== -->
 
 <div class="app" id="app">
 
-    <!-- SIDEBAR -->
+    <!-- =================================
+         SIDEBAR
+    ================================== -->
 
     <aside class="sidebar" id="sidebar">
 
-        <div class="sidebar-brand">
-            <div class="brand-logo">♛</div>
-            <div class="brand-text">
-                <h1>ROYAL CHESS</h1>
-                <span>CHESS PLATFORM</span>
+        <div class="sidebar-top">
+
+            <div class="brand">
+                <div class="brand-mark">
+                    <span>♛</span>
+                    <div class="brand-glow"></div>
+                </div>
+
+                <div class="brand-info">
+                    <h1>ROYAL <span>CHESS</span></h1>
+                    <p>BEYOND THE BOARD</p>
+                </div>
             </div>
+
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="طي القائمة">
+                <i class="fa-solid fa-angles-right"></i>
+            </button>
+
         </div>
 
-        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-player">
+
+            <div class="sidebar-player-avatar">
+                <i class="fa-solid fa-chess-king"></i>
+                <span class="online-indicator"></span>
+            </div>
+
+            <div class="sidebar-player-info">
+                <strong id="headerName">Player</strong>
+                <span>STANDARD PLAYER</span>
+            </div>
+
+            <div class="player-level">
+                <span>LV</span>
+                <strong id="statLevel">1</strong>
+            </div>
+
+        </div>
+
 
         <nav class="sidebar-navigation">
 
-            <span class="nav-heading">الرئيسية</span>
+            <!-- MAIN -->
 
-            <button class="nav-button active" data-page="home">
-                <i class="fa-solid fa-house"></i>
-                <span>الرئيسية</span>
-            </button>
+            <div class="nav-group">
+                <span class="nav-heading">MAIN MENU</span>
 
-            <button class="nav-button" data-page="play">
-                <i class="fa-solid fa-chess"></i>
-                <span>اللعب</span>
-            </button>
+                <button class="nav-button active" data-page="home">
+                    <span class="nav-icon icon-home">
+                        <i class="fa-solid fa-house"></i>
+                    </span>
+                    <span class="nav-label">الرئيسية</span>
+                    <span class="nav-indicator"></span>
+                </button>
 
+                <button class="nav-button" data-page="play">
+                    <span class="nav-icon icon-play">
+                        <i class="fa-solid fa-chess-knight"></i>
+                    </span>
+                    <span class="nav-label">العب الآن</span>
+                    <span class="nav-badge">PLAY</span>
+                </button>
 
-            <span class="nav-heading">اللاعب</span>
+                <button class="nav-button" data-page="online">
+                    <span class="nav-icon icon-online">
+                        <i class="fa-solid fa-globe"></i>
+                    </span>
+                    <span class="nav-label">اللعب أونلاين</span>
+                </button>
 
-            <button class="nav-button" data-page="profile">
-                <i class="fa-solid fa-user"></i>
-                <span>الملف الشخصي</span>
-            </button>
-
-            <button class="nav-button" data-page="statistics">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span>الإحصائيات</span>
-            </button>
-
-            <button class="nav-button" data-page="history">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <span>سجل المباريات</span>
-            </button>
-
-
-            <span class="nav-heading">الشطرنج</span>
-
-            <button class="nav-button" data-page="openings">
-                <i class="fa-solid fa-book-open"></i>
-                <span>الافتتاحيات</span>
-            </button>
+                <button class="nav-button" data-page="puzzles">
+                    <span class="nav-icon icon-puzzle">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                    </span>
+                    <span class="nav-label">ألغاز الشطرنج</span>
+                </button>
+            </div>
 
 
-            <span class="nav-heading">النظام</span>
+            <!-- IMPROVEMENT -->
 
-            <button class="nav-button" data-page="settings">
-                <i class="fa-solid fa-gear"></i>
-                <span>الإعدادات</span>
-            </button>
+            <div class="nav-group">
+                <span class="nav-heading">IMPROVEMENT</span>
+
+                <button class="nav-button" data-page="analysis">
+                    <span class="nav-icon icon-analysis">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </span>
+                    <span class="nav-label">تحليل المباريات</span>
+                </button>
+
+                <button class="nav-button" data-page="openings">
+                    <span class="nav-icon icon-openings">
+                        <i class="fa-solid fa-book-open"></i>
+                    </span>
+                    <span class="nav-label">الافتتاحيات</span>
+                </button>
+
+                <button class="nav-button" data-page="lessons">
+                    <span class="nav-icon icon-lessons">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </span>
+                    <span class="nav-label">التعلم والتدريب</span>
+                </button>
+            </div>
+
+
+            <!-- PLAYER -->
+
+            <div class="nav-group">
+                <span class="nav-heading">PLAYER CENTER</span>
+
+                <button class="nav-button" data-page="profile">
+                    <span class="nav-icon icon-profile">
+                        <i class="fa-solid fa-user"></i>
+                    </span>
+                    <span class="nav-label">ملفي الشخصي</span>
+                </button>
+
+                <button class="nav-button" data-page="statistics">
+                    <span class="nav-icon icon-stats">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </span>
+                    <span class="nav-label">الإحصائيات</span>
+                </button>
+
+                <button class="nav-button" data-page="history">
+                    <span class="nav-icon icon-history">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </span>
+                    <span class="nav-label">سجل المباريات</span>
+                </button>
+
+                <button class="nav-button" data-page="achievements">
+                    <span class="nav-icon icon-achievements">
+                        <i class="fa-solid fa-medal"></i>
+                    </span>
+                    <span class="nav-label">الإنجازات</span>
+                </button>
+
+                <button class="nav-button" data-page="leaderboard">
+                    <span class="nav-icon icon-leaderboard">
+                        <i class="fa-solid fa-ranking-star"></i>
+                    </span>
+                    <span class="nav-label">التصنيف العالمي</span>
+                    <span class="nav-badge new-badge">RANK</span>
+                </button>
+            </div>
+
+
+            <!-- SYSTEM -->
+
+            <div class="nav-group">
+                <span class="nav-heading">SYSTEM</span>
+
+                <button class="nav-button" data-page="settings">
+                    <span class="nav-icon icon-settings">
+                        <i class="fa-solid fa-sliders"></i>
+                    </span>
+                    <span class="nav-label">الإعدادات</span>
+                </button>
+            </div>
 
         </nav>
 
 
         <div class="sidebar-bottom">
-            <div class="sidebar-user">
-                <div class="user-avatar">♙</div>
-                <div class="user-information">
-                    <strong id="headerName">Player</strong>
-                    <span>لاعب</span>
-                </div>
+
+            <div class="sidebar-status">
+                <span class="status-dot"></span>
+                <span>النظام يعمل</span>
+                <span class="system-version">V1.0</span>
             </div>
+
+            <div class="sidebar-footer-brand">
+                <span>ROYAL CHESS</span>
+                <small>DESIGNED FOR STRATEGY</small>
+            </div>
+
         </div>
 
     </aside>
 
 
-    <!-- MAIN CONTENT -->
+    <!-- SIDEBAR OVERLAY -->
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+    <!-- =================================
+         MAIN CONTENT
+    ================================== -->
 
     <main class="main-content">
+
 
         <!-- TOPBAR -->
 
         <header class="topbar">
 
-            <div class="topbar-title">
-                <button class="menu-button" id="menuButton" aria-label="فتح القائمة">
+            <div class="topbar-start">
+
+                <button class="mobile-menu-button" id="menuButton" aria-label="القائمة">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
-                <div>
+                <div class="page-heading">
+                    <span class="page-eyebrow">ROYAL CHESS / PLATFORM</span>
                     <h2 id="pageTitle">الرئيسية</h2>
-                    <p id="pageSubtitle">لوحة التحكم</p>
+                    <p id="pageSubtitle">مركز القيادة الخاص بك</p>
                 </div>
+
             </div>
 
-            <div class="topbar-actions">
+
+            <div class="topbar-end">
+
+                <div class="system-indicator">
+                    <span class="status-dot"></span>
+                    <span>ONLINE</span>
+                </div>
+
                 <div class="topbar-rating">
-                    <i class="fa-solid fa-chess-king"></i>
+                    <i class="fa-solid fa-crown"></i>
                     <span id="headerRating">1000</span>
                 </div>
+
+                <button class="topbar-icon-button" id="notificationButton" aria-label="الإشعارات">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <button class="topbar-avatar" data-page="profile" aria-label="الملف الشخصي">
+                    <i class="fa-solid fa-user"></i>
+                </button>
+
             </div>
 
         </header>
 
 
-        <!-- =========================
-             HOME PAGE
-        ========================== -->
+        <!-- =================================
+             HOME
+        ================================== -->
 
         <section class="page active" id="homePage">
 
-            <div class="hero-section">
+            <div class="welcome-banner">
 
-                <div class="hero-content">
-                    <span class="hero-tag">ROYAL CHESS</span>
+                <div class="welcome-background-symbol">♛</div>
+                <div class="welcome-grid"></div>
+
+                <div class="welcome-content">
+                    <span class="welcome-tag">
+                        <span class="status-dot"></span>
+                        YOUR CHESS JOURNEY STARTS HERE
+                    </span>
 
                     <h1>
-                        مرحباً بك في
-                        <span>عالم الشطرنج</span>
+                        حان وقت
+                        <span>السيطرة على الرقعة.</span>
                     </h1>
 
                     <p>
-                        خطط لتحركاتك، واصنع استراتيجيتك، وابدأ مباراتك.
+                        كل نقلة تصنع فرقاً. خطط بذكاء، وتقدم بثبات.
                     </p>
 
-                    <button class="primary-button" data-goto="play">
-                        ابدأ اللعب
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
+                    <div class="welcome-actions">
+                        <button class="primary-button play-button" data-goto="play">
+                            <i class="fa-solid fa-play"></i>
+                            ابدأ مباراة
+                        </button>
+
+                        <button class="outline-button" data-goto="analysis">
+                            <i class="fa-solid fa-chart-line"></i>
+                            تحليل الأداء
+                        </button>
+                    </div>
                 </div>
 
-                <div class="hero-symbol">♛</div>
+                <div class="welcome-decoration">
+                    <div class="decoration-ring"></div>
+                    <div class="decoration-piece">♛</div>
+                </div>
 
             </div>
 
 
-            <div class="section-heading">
+            <!-- STATS -->
+
+            <div class="section-header">
                 <div>
-                    <h3>إحصائياتك</h3>
-                    <p>ملخص أدائك في الشطرنج</p>
+                    <span class="section-kicker">YOUR PERFORMANCE</span>
+                    <h3>نظرة عامة</h3>
                 </div>
+
+                <span class="section-date">PLAYER OVERVIEW</span>
             </div>
 
 
             <div class="stats-grid">
 
-                <article class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-chess-board"></i></div>
-                    <span>المباريات</span>
+                <article class="stat-card stat-games">
+                    <div class="stat-card-top">
+                        <span>إجمالي المباريات</span>
+                        <i class="fa-solid fa-chess-board"></i>
+                    </div>
                     <strong id="statGames">0</strong>
+                    <small>المباريات المسجلة</small>
                 </article>
 
-                <article class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
-                    <span>الانتصارات</span>
+                <article class="stat-card stat-wins">
+                    <div class="stat-card-top">
+                        <span>الانتصارات</span>
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
                     <strong id="statWins">0</strong>
+                    <small>إجمالي الفوز</small>
                 </article>
 
-                <article class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-ranking-star"></i></div>
-                    <span>التصنيف</span>
+                <article class="stat-card stat-rating">
+                    <div class="stat-card-top">
+                        <span>التصنيف</span>
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
                     <strong id="statRating">1000</strong>
+                    <small>نقاط التصنيف</small>
                 </article>
 
-                <article class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-medal"></i></div>
-                    <span>المستوى</span>
+                <article class="stat-card stat-level-card">
+                    <div class="stat-card-top">
+                        <span>المستوى</span>
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
                     <strong id="statLevel">1</strong>
+                    <small>مستوى اللاعب</small>
                 </article>
 
             </div>
 
 
-            <div class="section-heading">
+            <!-- QUICK PLAY -->
+
+            <div class="section-header">
                 <div>
-                    <h3>طرق اللعب</h3>
-                    <p>اختر نوع المباراة</p>
+                    <span class="section-kicker">CHOOSE YOUR BATTLE</span>
+                    <h3>اختر طريقة اللعب</h3>
                 </div>
             </div>
 
 
             <div class="mode-grid">
 
-                <article class="mode-card">
-                    <div class="mode-icon">♟</div>
+                <article class="mode-card mode-computer">
+                    <div class="mode-card-top">
+                        <span class="mode-symbol">♟</span>
+                        <span class="mode-label">AI MODE</span>
+                    </div>
+
                     <h3>ضد الكمبيوتر</h3>
-                    <p>العب ضد الذكاء الاصطناعي.</p>
-                    <button class="secondary-button" data-open="computerModal">
-                        اختيار
+                    <p>اختبر مهاراتك أمام خصم ذكي.</p>
+
+                    <button class="mode-button" data-open="computerModal">
+                        إعداد المباراة
+                        <i class="fa-solid fa-arrow-left"></i>
                     </button>
                 </article>
 
-                <article class="mode-card">
-                    <div class="mode-icon">♞</div>
+
+                <article class="mode-card mode-friend">
+                    <div class="mode-card-top">
+                        <span class="mode-symbol">♞</span>
+                        <span class="mode-label">PRIVATE ROOM</span>
+                    </div>
+
                     <h3>مع صديق</h3>
-                    <p>أنشئ غرفة خاصة للعب.</p>
-                    <button class="secondary-button" data-open="friendModal">
-                        اختيار
+                    <p>أنشئ غرفة خاصة وادعُ صديقك.</p>
+
+                    <button class="mode-button" data-open="friendModal">
+                        إعداد الغرفة
+                        <i class="fa-solid fa-arrow-left"></i>
                     </button>
                 </article>
 
-                <article class="mode-card">
-                    <div class="mode-icon">♜</div>
+
+                <article class="mode-card mode-local">
+                    <div class="mode-card-top">
+                        <span class="mode-symbol">♜</span>
+                        <span class="mode-label">LOCAL MODE</span>
+                    </div>
+
                     <h3>اللعب المحلي</h3>
-                    <p>العب مع شخص على نفس الجهاز.</p>
-                    <button class="secondary-button" data-action="local">
-                        ابدأ
+                    <p>لاعبان على جهاز واحد.</p>
+
+                    <button class="mode-button" data-action="local">
+                        ابدأ اللعب
+                        <i class="fa-solid fa-arrow-left"></i>
                     </button>
                 </article>
 
             </div>
 
 
-            <div class="section-heading">
-                <div>
-                    <h3>آخر المباريات</h3>
-                    <p>نتائجك الأخيرة</p>
+            <!-- LOWER CONTENT -->
+
+            <div class="home-bottom-grid">
+
+                <div class="content-panel recent-panel">
+
+                    <div class="panel-heading">
+                        <div>
+                            <span class="section-kicker">RECENT ACTIVITY</span>
+                            <h3>آخر المباريات</h3>
+                        </div>
+
+                        <button class="text-button" data-goto="history">
+                            عرض الكل
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </div>
+
+                    <div id="recentMatches">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-chess"></i>
+                            <p>لا توجد مباريات سابقة.</p>
+                        </div>
+                    </div>
+
                 </div>
 
-                <button class="text-button" data-goto="history">
-                    عرض الكل
-                </button>
-            </div>
 
-            <div class="content-panel" id="recentMatches">
-                <div class="empty-state">لا توجد مباريات سابقة.</div>
+                <div class="content-panel quick-panel">
+
+                    <div class="panel-heading">
+                        <div>
+                            <span class="section-kicker">QUICK ACCESS</span>
+                            <h3>الوصول السريع</h3>
+                        </div>
+                    </div>
+
+                    <button class="quick-link" data-goto="puzzles">
+                        <span class="quick-icon purple">
+                            <i class="fa-solid fa-puzzle-piece"></i>
+                        </span>
+                        <span>ألغاز الشطرنج</span>
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+
+                    <button class="quick-link" data-goto="openings">
+                        <span class="quick-icon blue">
+                            <i class="fa-solid fa-book-open"></i>
+                        </span>
+                        <span>الافتتاحيات</span>
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+
+                    <button class="quick-link" data-goto="achievements">
+                        <span class="quick-icon gold">
+                            <i class="fa-solid fa-medal"></i>
+                        </span>
+                        <span>الإنجازات</span>
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+
+                </div>
+
             </div>
 
         </section>
 
 
-        <!-- =========================
-             PLAY PAGE
-        ========================== -->
+        <!-- =================================
+             PLAY
+        ================================== -->
 
         <section class="page" id="playPage">
 
-            <div class="section-heading">
+            <div class="page-banner banner-green">
                 <div>
-                    <h3>اللعب</h3>
-                    <p>اختر خصمك وابدأ المباراة</p>
+                    <span class="section-kicker">GAME CENTER</span>
+                    <h1>مركز اللعب</h1>
+                    <p>اختر خصمك، واضبط إعدادات المباراة.</p>
                 </div>
+                <div class="banner-symbol">♞</div>
             </div>
 
             <div class="mode-grid">
 
-                <article class="mode-card">
-                    <div class="mode-icon">♟</div>
-                    <h3>ضد الكمبيوتر</h3>
-                    <p>اختر مستوى الصعوبة ولون قطعك.</p>
-                    <button class="primary-button" data-open="computerModal">
-                        ابدأ
-                    </button>
+                <article class="mode-card mode-computer">
+                    <span class="mode-label">ARTIFICIAL INTELLIGENCE</span>
+                    <div class="large-mode-icon">♟</div>
+                    <h3>الكمبيوتر</h3>
+                    <p>مواجهة الذكاء الاصطناعي بمستويات مختلفة.</p>
+                    <button class="mode-button" data-open="computerModal">اختيار الخصم</button>
                 </article>
 
-                <article class="mode-card">
-                    <div class="mode-icon">♞</div>
-                    <h3>مع صديق</h3>
-                    <p>أنشئ غرفة أو انضم إلى غرفة.</p>
-                    <button class="secondary-button" data-open="friendModal">
-                        الغرف
-                    </button>
+                <article class="mode-card mode-friend">
+                    <span class="mode-label">PRIVATE MATCH</span>
+                    <div class="large-mode-icon">♞</div>
+                    <h3>غرفة خاصة</h3>
+                    <p>إنشاء غرفة أو الانضمام إلى صديق.</p>
+                    <button class="mode-button" data-open="friendModal">فتح الغرف</button>
                 </article>
 
-                <article class="mode-card">
-                    <div class="mode-icon">♜</div>
-                    <h3>محلي</h3>
-                    <p>مباراة بين لاعبين على جهاز واحد.</p>
-                    <button class="secondary-button" data-action="local">
-                        ابدأ
-                    </button>
+                <article class="mode-card mode-local">
+                    <span class="mode-label">TWO PLAYERS</span>
+                    <div class="large-mode-icon">♜</div>
+                    <h3>اللعب المحلي</h3>
+                    <p>مباراة مباشرة على نفس الجهاز.</p>
+                    <button class="mode-button" data-action="local">ابدأ المباراة</button>
                 </article>
 
             </div>
@@ -327,28 +577,250 @@
         </section>
 
 
-        <!-- =========================
-             PROFILE PAGE
-        ========================== -->
+        <!-- =================================
+             ONLINE
+        ================================== -->
+
+        <section class="page" id="onlinePage">
+
+            <div class="page-banner banner-blue">
+                <div>
+                    <span class="section-kicker">ONLINE NETWORK</span>
+                    <h1>اللعب أونلاين</h1>
+                    <p>العب مع الآخرين عبر الغرف الخاصة.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-globe"></i></div>
+            </div>
+
+            <div class="content-panel online-panel">
+
+                <div class="online-status">
+                    <span class="status-dot"></span>
+                    <strong>نظام الغرف</strong>
+                </div>
+
+                <h3>الغرف الخاصة</h3>
+                <p>أنشئ غرفة وشارك رمزها مع صديقك، أو أدخل رمز غرفة للانضمام.</p>
+
+                <div class="online-actions">
+                    <button class="primary-button" data-open="friendModal">
+                        <i class="fa-solid fa-plus"></i>
+                        إنشاء أو انضمام
+                    </button>
+                </div>
+
+                <p class="system-note">
+                    يتطلب اللعب بين أجهزة مختلفة ربط الغرف بخدمة اتصال خلفية.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             PUZZLES
+        ================================== -->
+
+        <section class="page" id="puzzlesPage">
+
+            <div class="page-banner banner-purple">
+                <div>
+                    <span class="section-kicker">TACTICAL TRAINING</span>
+                    <h1>ألغاز الشطرنج</h1>
+                    <p>طوّر تفكيرك واكتشف أفضل النقلات.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-puzzle-piece"></i></div>
+            </div>
+
+            <div class="feature-grid">
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3>تكتيكات سريعة</h3>
+                    <p>تدرب على اكتشاف الفرص.</p>
+                    <button class="secondary-button" data-action="puzzle-tactics">ابدأ</button>
+                </article>
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-chess-king"></i>
+                    <h3>كش مات</h3>
+                    <p>تدرب على إنهاء المباراة.</p>
+                    <button class="secondary-button" data-action="puzzle-mate">ابدأ</button>
+                </article>
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-brain"></i>
+                    <h3>التفكير الاستراتيجي</h3>
+                    <p>حل مواقف شطرنجية متنوعة.</p>
+                    <button class="secondary-button" data-action="puzzle-strategy">ابدأ</button>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             ANALYSIS
+        ================================== -->
+
+        <section class="page" id="analysisPage">
+
+            <div class="page-banner banner-cyan">
+                <div>
+                    <span class="section-kicker">CHESS INTELLIGENCE</span>
+                    <h1>تحليل المباريات</h1>
+                    <p>راجع النقلات وراقب تطور أدائك.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+
+            <div class="content-panel">
+                <div class="panel-heading">
+                    <h3>تحليل أدائك</h3>
+                </div>
+
+                <div class="analysis-placeholder">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <h3>مركز التحليل</h3>
+                    <p>ستظهر هنا أدوات تحليل المباريات عند ربط محرك التحليل.</p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             OPENINGS
+        ================================== -->
+
+        <section class="page" id="openingsPage">
+
+            <div class="page-banner banner-gold">
+                <div>
+                    <span class="section-kicker">OPENING LIBRARY</span>
+                    <h1>مكتبة الافتتاحيات</h1>
+                    <p>اكتشف أشهر بدايات مباريات الشطرنج.</p>
+                </div>
+                <div class="banner-symbol">♜</div>
+            </div>
+
+            <div class="opening-grid">
+
+                <article class="opening-card">
+                    <span class="opening-number">01</span>
+                    <h3>الافتتاح الإيطالي</h3>
+                    <p>تطوير القطع والسيطرة على المركز.</p>
+                    <code>1. e4 e5 2. Nf3 Nc6 3. Bc4</code>
+                </article>
+
+                <article class="opening-card">
+                    <span class="opening-number">02</span>
+                    <h3>الدفاع الصقلي</h3>
+                    <p>افتتاح ديناميكي للأسود.</p>
+                    <code>1. e4 c5</code>
+                </article>
+
+                <article class="opening-card">
+                    <span class="opening-number">03</span>
+                    <h3>افتتاح الوزير</h3>
+                    <p>الضغط على المركز وتطوير القطع.</p>
+                    <code>1. d4 d5 2. c4</code>
+                </article>
+
+                <article class="opening-card">
+                    <span class="opening-number">04</span>
+                    <h3>الدفاع الفرنسي</h3>
+                    <p>بناء دفاع متين ومواجهة المركز.</p>
+                    <code>1. e4 e6</code>
+                </article>
+
+                <article class="opening-card">
+                    <span class="opening-number">05</span>
+                    <h3>افتتاح روي لوبيز</h3>
+                    <p>ضغط مبكر على حصان الخصم.</p>
+                    <code>1. e4 e5 2. Nf3 Nc6 3. Bb5</code>
+                </article>
+
+                <article class="opening-card">
+                    <span class="opening-number">06</span>
+                    <h3>دفاع كارو كان</h3>
+                    <p>دفاع صلب وبنية بيادق متماسكة.</p>
+                    <code>1. e4 c6</code>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             LESSONS
+        ================================== -->
+
+        <section class="page" id="lessonsPage">
+
+            <div class="page-banner banner-purple">
+                <div>
+                    <span class="section-kicker">CHESS ACADEMY</span>
+                    <h1>التعلم والتدريب</h1>
+                    <p>تعلم أساسيات الشطرنج وطور مستواك.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-graduation-cap"></i></div>
+            </div>
+
+            <div class="feature-grid">
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-chess"></i>
+                    <h3>أساسيات الشطرنج</h3>
+                    <p>تعرف على القطع وطريقة حركتها.</p>
+                </article>
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>الدفاع</h3>
+                    <p>تعلم حماية قطعك وموقعك.</p>
+                </article>
+
+                <article class="feature-card">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <h3>الهجوم</h3>
+                    <p>تعلم بناء الهجمات التكتيكية.</p>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             PROFILE
+        ================================== -->
 
         <section class="page" id="profilePage">
 
-            <div class="section-heading">
+            <div class="page-banner banner-gold">
                 <div>
-                    <h3>الملف الشخصي</h3>
-                    <p>إدارة بيانات اللاعب</p>
+                    <span class="section-kicker">PLAYER IDENTITY</span>
+                    <h1>ملفي الشخصي</h1>
+                    <p>معلومات حسابك وتقدمك.</p>
                 </div>
+                <div class="banner-symbol"><i class="fa-solid fa-user"></i></div>
             </div>
 
             <div class="profile-panel">
 
-                <div class="profile-avatar">♙</div>
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-chess-king"></i>
+                </div>
 
                 <div class="profile-details">
                     <h2 id="profileName">Player</h2>
-                    <p>لاعب في ROYAL CHESS</p>
+                    <p>ROYAL CHESS PLAYER</p>
                     <strong id="profileRating">1000</strong>
-                    <span>التصنيف</span>
+                    <span>RATING POINTS</span>
                 </div>
 
             </div>
@@ -357,11 +829,12 @@
 
                 <div class="form-group">
                     <label for="nameInput">اسم اللاعب</label>
-                    <input type="text" id="nameInput" maxlength="20" placeholder="اكتب اسمك">
+                    <input id="nameInput" type="text" maxlength="20" placeholder="أدخل اسمك">
                 </div>
 
                 <button class="primary-button" id="saveProfile">
-                    حفظ
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    حفظ التغييرات
                 </button>
 
             </div>
@@ -369,37 +842,39 @@
         </section>
 
 
-        <!-- =========================
-             STATISTICS PAGE
-        ========================== -->
+        <!-- =================================
+             STATISTICS
+        ================================== -->
 
         <section class="page" id="statisticsPage">
 
-            <div class="section-heading">
+            <div class="page-banner banner-cyan">
                 <div>
-                    <h3>الإحصائيات</h3>
-                    <p>تفاصيل أدائك</p>
+                    <span class="section-kicker">PERFORMANCE DATA</span>
+                    <h1>الإحصائيات</h1>
+                    <p>أرقامك ونتائجك في المباريات.</p>
                 </div>
+                <div class="banner-symbol"><i class="fa-solid fa-chart-pie"></i></div>
             </div>
 
             <div class="stats-grid">
 
-                <article class="stat-card">
+                <article class="stat-card stat-games">
                     <span>المباريات</span>
                     <strong id="detailGames">0</strong>
                 </article>
 
-                <article class="stat-card">
+                <article class="stat-card stat-wins">
                     <span>الانتصارات</span>
                     <strong id="detailWins">0</strong>
                 </article>
 
-                <article class="stat-card">
+                <article class="stat-card stat-losses">
                     <span>الخسائر</span>
                     <strong id="detailLosses">0</strong>
                 </article>
 
-                <article class="stat-card">
+                <article class="stat-card stat-draws">
                     <span>التعادلات</span>
                     <strong id="detailDraws">0</strong>
                 </article>
@@ -408,71 +883,76 @@
 
             <div class="content-panel">
                 <h3>نسبة الفوز</h3>
-
                 <div class="progress-track">
                     <div class="progress-fill" id="winProgress"></div>
                 </div>
-
                 <strong id="winPercentage">0%</strong>
             </div>
 
         </section>
 
 
-        <!-- =========================
-             HISTORY PAGE
-        ========================== -->
+        <!-- =================================
+             HISTORY
+        ================================== -->
 
         <section class="page" id="historyPage">
 
-            <div class="section-heading">
+            <div class="page-banner banner-blue">
                 <div>
-                    <h3>سجل المباريات</h3>
-                    <p>المباريات السابقة ونتائجها</p>
+                    <span class="section-kicker">MATCH ARCHIVE</span>
+                    <h1>سجل المباريات</h1>
+                    <p>جميع مبارياتك السابقة.</p>
                 </div>
+                <div class="banner-symbol"><i class="fa-solid fa-clock-rotate-left"></i></div>
             </div>
 
             <div class="content-panel" id="fullMatchHistory">
-                <div class="empty-state">لا توجد مباريات محفوظة.</div>
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             OPENINGS PAGE
-        ========================== -->
-
-        <section class="page" id="openingsPage">
-
-            <div class="section-heading">
-                <div>
-                    <h3>الافتتاحيات</h3>
-                    <p>مكتبة افتتاحيات الشطرنج</p>
+                <div class="empty-state">
+                    <i class="fa-solid fa-clock"></i>
+                    <p>لا توجد مباريات محفوظة.</p>
                 </div>
             </div>
 
-            <div class="opening-grid">
+        </section>
 
-                <article class="opening-card">
-                    <span>01</span>
-                    <h3>الافتتاح الإيطالي</h3>
-                    <p>تطوير القطع والسيطرة على المركز.</p>
-                    <code>1. e4 e5 2. Nf3 Nc6 3. Bc4</code>
+
+        <!-- =================================
+             ACHIEVEMENTS
+        ================================== -->
+
+        <section class="page" id="achievementsPage">
+
+            <div class="page-banner banner-gold">
+                <div>
+                    <span class="section-kicker">PLAYER ACHIEVEMENTS</span>
+                    <h1>الإنجازات</h1>
+                    <p>سجل تقدمك والإنجازات التي تحققها.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-medal"></i></div>
+            </div>
+
+            <div class="feature-grid">
+
+                <article class="feature-card achievement-card">
+                    <i class="fa-solid fa-flag"></i>
+                    <h3>البداية</h3>
+                    <p>إكمال أول مباراة.</p>
+                    <span class="achievement-status">قيد التقدم</span>
                 </article>
 
-                <article class="opening-card">
-                    <span>02</span>
-                    <h3>الدفاع الصقلي</h3>
-                    <p>افتتاح هجومي شائع للأسود.</p>
-                    <code>1. e4 c5</code>
+                <article class="feature-card achievement-card">
+                    <i class="fa-solid fa-trophy"></i>
+                    <h3>الفائز الأول</h3>
+                    <p>تحقيق أول انتصار.</p>
+                    <span class="achievement-status">قيد التقدم</span>
                 </article>
 
-                <article class="opening-card">
-                    <span>03</span>
-                    <h3>افتتاح الوزير</h3>
-                    <p>السيطرة على المركز وبناء موقف قوي.</p>
-                    <code>1. d4 d5 2. c4</code>
+                <article class="feature-card achievement-card">
+                    <i class="fa-solid fa-crown"></i>
+                    <h3>الملك</h3>
+                    <p>تحقيق سلسلة انتصارات.</p>
+                    <span class="achievement-status">قيد التقدم</span>
                 </article>
 
             </div>
@@ -480,56 +960,115 @@
         </section>
 
 
-        <!-- =========================
-             SETTINGS PAGE
-        ========================== -->
+        <!-- =================================
+             LEADERBOARD
+        ================================== -->
+
+        <section class="page" id="leaderboardPage">
+
+            <div class="page-banner banner-gold">
+                <div>
+                    <span class="section-kicker">GLOBAL RANKING</span>
+                    <h1>التصنيف العالمي</h1>
+                    <p>لوحة ترتيب اللاعبين.</p>
+                </div>
+                <div class="banner-symbol"><i class="fa-solid fa-ranking-star"></i></div>
+            </div>
+
+            <div class="content-panel">
+                <div class="empty-state">
+                    <i class="fa-solid fa-ranking-star"></i>
+                    <p>سيظهر ترتيب اللاعبين بعد ربط نظام الحسابات والتصنيف.</p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             SETTINGS
+        ================================== -->
 
         <section class="page" id="settingsPage">
 
-            <div class="section-heading">
+            <div class="page-banner banner-purple">
                 <div>
-                    <h3>الإعدادات</h3>
-                    <p>إعدادات الموقع والمباراة</p>
+                    <span class="section-kicker">SYSTEM CONTROL</span>
+                    <h1>الإعدادات</h1>
+                    <p>تحكم في تجربة استخدامك.</p>
                 </div>
+                <div class="banner-symbol"><i class="fa-solid fa-sliders"></i></div>
             </div>
+
 
             <div class="settings-list">
 
                 <div class="setting-row">
-                    <div>
-                        <h4>الأصوات</h4>
-                        <p>أصوات حركة القطع</p>
+                    <div class="setting-icon setting-sound">
+                        <i class="fa-solid fa-volume-high"></i>
                     </div>
+
+                    <div class="setting-info">
+                        <h4>الأصوات</h4>
+                        <p>تفعيل أصوات تحركات القطع.</p>
+                    </div>
+
                     <input type="checkbox" id="soundSetting" checked>
                 </div>
 
+
                 <div class="setting-row">
-                    <div>
-                        <h4>الحركات المتحركة</h4>
-                        <p>تأثيرات الحركة</p>
+                    <div class="setting-icon setting-animation">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
+
+                    <div class="setting-info">
+                        <h4>الحركات المتحركة</h4>
+                        <p>تفعيل تأثيرات الحركة.</p>
+                    </div>
+
                     <input type="checkbox" id="animationSetting" checked>
                 </div>
 
+
                 <div class="setting-row">
-                    <div>
-                        <h4>اللغة</h4>
-                        <p>لغة واجهة الموقع</p>
+                    <div class="setting-icon setting-language">
+                        <i class="fa-solid fa-language"></i>
                     </div>
+
+                    <div class="setting-info">
+                        <h4>اللغة</h4>
+                        <p>لغة واجهة الموقع.</p>
+                    </div>
+
                     <select id="languageSetting">
                         <option value="ar">العربية</option>
                         <option value="en">English</option>
                     </select>
                 </div>
 
+
+                <div class="setting-row">
+                    <div class="setting-icon setting-theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </div>
+
+                    <div class="setting-info">
+                        <h4>المظهر</h4>
+                        <p>المظهر الداكن.</p>
+                    </div>
+
+                    <span class="setting-value">DARK</span>
+                </div>
+
             </div>
 
         </section>
 
 
-        <!-- =========================
+        <!-- =================================
              GAME VIEW
-        ========================== -->
+        ================================== -->
 
         <section class="game-view" id="gameView">
 
@@ -540,9 +1079,15 @@
                     العودة
                 </button>
 
-                <div>
+                <div class="game-header-title">
+                    <span class="section-kicker">LIVE MATCH</span>
                     <h2>المباراة</h2>
                     <p id="matchType">مباراة شطرنج</p>
+                </div>
+
+                <div class="game-live-status">
+                    <span class="status-dot"></span>
+                    LIVE
                 </div>
 
             </header>
@@ -553,11 +1098,11 @@
                 <div class="board-column">
 
                     <div class="player-bar">
-                        <div class="player-avatar">♟</div>
+                        <div class="player-avatar black-avatar">♟</div>
 
                         <div class="player-info">
                             <strong id="blackPlayer">الأسود</strong>
-                            <span>Black</span>
+                            <span>BLACK PLAYER</span>
                         </div>
 
                         <div class="clock" id="blackClock">10:00</div>
@@ -568,11 +1113,11 @@
 
 
                     <div class="player-bar">
-                        <div class="player-avatar">♙</div>
+                        <div class="player-avatar white-avatar">♙</div>
 
                         <div class="player-info">
                             <strong id="whitePlayer">الأبيض</strong>
-                            <span>White</span>
+                            <span>WHITE PLAYER</span>
                         </div>
 
                         <div class="clock" id="whiteClock">10:00</div>
@@ -603,7 +1148,10 @@
 
 
                     <div class="moves-panel">
-                        <h3>النقلات</h3>
+                        <div class="panel-heading">
+                            <h3>سجل النقلات</h3>
+                            <i class="fa-solid fa-list"></i>
+                        </div>
 
                         <div class="move-history" id="moveHistory">
                             <div class="empty-state">لا توجد نقلات.</div>
@@ -612,10 +1160,25 @@
 
 
                     <div class="game-controls">
-                        <button id="undoBtn">تراجع</button>
-                        <button id="restartBtn">إعادة</button>
-                        <button id="flipBoardBtn">قلب الرقعة</button>
-                        <button id="resignBtn">استسلام</button>
+                        <button id="undoBtn">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            تراجع
+                        </button>
+
+                        <button id="restartBtn">
+                            <i class="fa-solid fa-rotate"></i>
+                            إعادة
+                        </button>
+
+                        <button id="flipBoardBtn">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            قلب الرقعة
+                        </button>
+
+                        <button id="resignBtn">
+                            <i class="fa-solid fa-flag"></i>
+                            استسلام
+                        </button>
                     </div>
 
 
@@ -629,28 +1192,36 @@
 
         </section>
 
+
     </main>
 
 </div>
 
 
-<!-- =========================
+<!-- =====================================
      COMPUTER MODAL
-========================= -->
+===================================== -->
 
 <div class="modal" id="computerModal">
 
     <div class="modal-box">
 
-        <button class="modal-close" data-close="computerModal">×</button>
+        <button class="modal-close" data-close="computerModal" aria-label="إغلاق">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
-        <div class="modal-icon">♟</div>
+        <div class="modal-icon modal-green">
+            <i class="fa-solid fa-microchip"></i>
+        </div>
 
-        <h2>ضد الكمبيوتر</h2>
-        <p>إعدادات المباراة</p>
+        <span class="section-kicker">AI CONFIGURATION</span>
+        <h2>إعداد مباراة الكمبيوتر</h2>
+        <p>حدد مستوى الخصم ولون قطعك.</p>
+
 
         <div class="form-group">
-            <label for="difficulty">الصعوبة</label>
+            <label for="difficulty">مستوى الصعوبة</label>
+
             <select id="difficulty">
                 <option value="1">سهل</option>
                 <option value="2" selected>متوسط</option>
@@ -659,8 +1230,10 @@
             </select>
         </div>
 
+
         <div class="form-group">
-            <label for="playerColor">لون القطع</label>
+            <label for="playerColor">لون قطعك</label>
+
             <select id="playerColor">
                 <option value="w">الأبيض</option>
                 <option value="b">الأسود</option>
@@ -668,7 +1241,9 @@
             </select>
         </div>
 
+
         <button class="primary-button full-button" id="confirmComputer">
+            <i class="fa-solid fa-play"></i>
             بدء المباراة
         </button>
 
@@ -677,39 +1252,55 @@
 </div>
 
 
-<!-- =========================
-     FRIEND MODAL
-========================= -->
+<!-- =====================================
+     FRIEND ROOM MODAL
+===================================== -->
 
 <div class="modal" id="friendModal">
 
     <div class="modal-box">
 
-        <button class="modal-close" data-close="friendModal">×</button>
+        <button class="modal-close" data-close="friendModal" aria-label="إغلاق">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
-        <div class="modal-icon">♞</div>
+        <div class="modal-icon modal-blue">
+            <i class="fa-solid fa-users"></i>
+        </div>
 
-        <h2>اللعب مع صديق</h2>
-        <p>إنشاء غرفة أو الانضمام إليها</p>
+        <span class="section-kicker">PRIVATE MATCH</span>
+        <h2>غرفة خاصة</h2>
+        <p>أنشئ غرفة أو أدخل رمز صديقك.</p>
+
 
         <button class="primary-button full-button" id="createRoomBtn">
+            <i class="fa-solid fa-plus"></i>
             إنشاء غرفة
         </button>
 
-        <div class="room-code" id="roomCode">------</div>
+
+        <div class="room-code-container">
+            <span>رمز الغرفة</span>
+            <div class="room-code" id="roomCode">------</div>
+        </div>
+
 
         <div class="form-group">
-            <label for="joinRoomCode">رمز الغرفة</label>
+            <label for="joinRoomCode">رمز الانضمام</label>
+
             <input
                 type="text"
                 id="joinRoomCode"
                 maxlength="8"
-                placeholder="أدخل الرمز"
+                placeholder="أدخل رمز الغرفة"
+                autocomplete="off"
             >
         </div>
 
+
         <button class="secondary-button full-button" id="joinRoomBtn">
-            انضمام
+            <i class="fa-solid fa-right-to-bracket"></i>
+            الانضمام إلى الغرفة
         </button>
 
     </div>
@@ -717,11 +1308,12 @@
 </div>
 
 
-<!-- =========================
+<!-- =====================================
      TOAST
-========================= -->
+===================================== -->
 
 <div class="toast" id="royal-toast">
+    <i class="fa-solid fa-circle-info"></i>
     <span id="toastMessage"></span>
 </div>
 
