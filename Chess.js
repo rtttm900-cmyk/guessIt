@@ -1,1114 +1,1484 @@
-/* =========================================================
-   ROYAL CHESS — BEYOND THE BOARD
-   Main JavaScript Engine
-   Requires chess.js 0.10.3 loaded before this file.
-   ========================================================= */
+/* =====================================================
+   CHESS ARENA - ROYAL EDITION
+   Main Design System
+===================================================== */
 
-"use strict";
-
-/* ================= CONFIGURATION ================= */
-
-const CONFIG = {
-    initialTime: 600,
-    aiDepth: 2,
-    animationDuration: 250
-};
-
-const PIECES = {
-    w: {
-        k: "♔", q: "♕", r: "♖",
-        b: "♗", n: "♘", p: "♙"
-    },
-    b: {
-        k: "♚", q: "♛", r: "♜",
-        b: "♝", n: "♞", p: "♟"
-    }
-};
-
-const PIECE_VALUES = {
-    p: 100,
-    n: 320,
-    b: 330,
-    r: 500,
-    q: 900,
-    k: 20000
-};
-
-/* ================= GAME STATE ================= */
-
-let game = new Chess();
-
-let selectedSquare = null;
-let legalMoves = [];
-let lastMove = null;
-
-let playerColor = "w";
-let gameMode = "computer";
-let gameStarted = false;
-let boardFlipped = false;
-let aiThinking = false;
-let gameFinished = false;
-
-let difficulty = 2;
-
-let moveHistory = [];
-let roomCode = null;
-
-/* ================= DOM HELPERS ================= */
-
-const $ = selector => document.querySelector(selector);
-
-const $$ = selector => Array.from(
-    document.querySelectorAll(selector)
-);
-
-function get(id) {
-    return document.getElementById(id);
+:root {
+    --bg: #0b0f18;
+    --bg-secondary: #101725;
+    --panel: #151e2e;
+    --panel-hover: #1c293c;
+    --sidebar: #0e1522;
+    --border: rgba(218, 180, 91, 0.15);
+    --gold: #d6ad58;
+    --gold-light: #f1d28a;
+    --gold-dark: #9e7838;
+    --text: #f2f0e9;
+    --muted: #8993a4;
+    --danger: #d75b63;
+    --success: #57b98a;
+    --radius: 15px;
+    --sidebar-width: 265px;
+    --transition: 0.25s ease;
 }
 
-function exists(id) {
-    return !!get(id);
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-function toast(message, type = "info") {
-    const box = get("royal-toast");
-    const text = get("toastMessage");
-
-    if (!box || !text) {
-        console.log(message);
-        return;
-    }
-
-    text.textContent = message;
-
-    box.classList.remove("show", "success", "error");
-    box.classList.add("show");
-
-    if (type === "success") box.classList.add("success");
-    if (type === "error") box.classList.add("error");
-
-    clearTimeout(toast.timer);
-
-    toast.timer = setTimeout(() => {
-        box.classList.remove("show", "success", "error");
-    }, 3000);
+html {
+    scroll-behavior: smooth;
 }
 
-/* ================= LOADING SCREEN ================= */
-
-window.addEventListener("load", () => {
-    const loader =
-        get("loadingScreen") ||
-        get("royal-loader");
-
-    if (!loader) return;
-
-    setTimeout(() => {
-        loader.classList.add("hidden");
-
-        setTimeout(() => {
-            loader.style.display = "none";
-        }, 650);
-
-    }, 4000);
-});
-
-/* ================= NAVIGATION ================= */
-
-function showPage(pageName) {
-    const page = get(pageName + "Page");
-
-    if (!page) {
-        toast("هذه الصفحة غير موجودة.", "error");
-        return;
-    }
-
-    $$(".page-section").forEach(section => {
-        section.classList.remove("active");
-    });
-
-    page.classList.add("active");
-
-    $$(".royal-nav [data-page]").forEach(button => {
-        button.classList.toggle(
-            "active",
-            button.dataset.page === pageName
-        );
-    });
-
-    const title = get("pageTitle");
-
-    if (title) {
-        const activeButton = $(
-            `.royal-nav [data-page="${pageName}"]`
-        );
-
-        title.textContent =
-            activeButton?.textContent.trim() || pageName;
-    }
-
-    closeSidebar();
+body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Cairo", sans-serif;
+    overflow-x: hidden;
 }
 
-$$(".royal-nav [data-page]").forEach(button => {
-    button.addEventListener("click", () => {
-        showPage(button.dataset.page);
-    });
-});
-
-/* ================= SIDEBAR ================= */
-
-function openSidebar() {
-    get("sidebar")?.classList.add("open");
+button,
+input,
+select,
+textarea {
+    font: inherit;
 }
 
-function closeSidebar() {
-    get("sidebar")?.classList.remove("open");
+button {
+    cursor: pointer;
 }
 
-function toggleSidebar() {
-    get("sidebar")?.classList.toggle("open");
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
 }
 
-get("sidebarToggle")?.addEventListener("click", toggleSidebar);
-get("menuButton")?.addEventListener("click", toggleSidebar);
-
-document.addEventListener("click", event => {
-    const sidebar = get("sidebar");
-
-    if (
-        window.innerWidth <= 850 &&
-        sidebar?.classList.contains("open") &&
-        !sidebar.contains(event.target) &&
-        !event.target.closest("#menuButton") &&
-        !event.target.closest("#sidebarToggle")
-    ) {
-        closeSidebar();
-    }
-});
-
-/* ================= MODALS ================= */
-
-function openModal(id) {
-    const modal = get(id);
-
-    if (!modal) return;
-
-    modal.classList.add("active");
-    modal.classList.add("show");
+::selection {
+    background: var(--gold);
+    color: #111;
 }
 
-function closeModal(id) {
-    const modal = get(id);
 
-    if (!modal) return;
+/* =====================================================
+   APP LAYOUT
+===================================================== */
 
-    modal.classList.remove("active");
-    modal.classList.remove("show");
+.app-container {
+    min-height: 100vh;
 }
 
-$$("[data-close]").forEach(button => {
-    button.addEventListener("click", () => {
-        const modal = button.closest(".modal, .royal-modal");
-
-        if (modal) {
-            modal.classList.remove("active", "show");
-        }
-    });
-});
-
-$$(".modal").forEach(modal => {
-    modal.addEventListener("click", event => {
-        if (event.target === modal) {
-            modal.classList.remove("active", "show");
-        }
-    });
-});
-
-/* ================= BOARD ================= */
-
-function renderBoard() {
-    const board = get("board");
-
-    if (!board) return;
-
-    board.innerHTML = "";
-
-    const files = boardFlipped
-        ? ["h", "g", "f", "e", "d", "c", "b", "a"]
-        : ["a", "b", "c", "d", "e", "f", "g", "h"];
-
-    const ranks = boardFlipped
-        ? [1, 2, 3, 4, 5, 6, 7, 8]
-        : [8, 7, 6, 5, 4, 3, 2, 1];
-
-    const boardState = game.board();
-
-    ranks.forEach(rank => {
-        files.forEach(file => {
-            const squareName = file + rank;
-
-            const piece = game.get(squareName);
-
-            const square = document.createElement("div");
-
-            const fileIndex = file.charCodeAt(0) - 97;
-
-            square.className =
-                (fileIndex + rank) % 2 === 0
-                    ? "square light"
-                    : "square dark";
-
-            square.dataset.square = squareName;
-
-            if (selectedSquare === squareName) {
-                square.classList.add("selected");
-            }
-
-            if (
-                lastMove &&
-                (lastMove.from === squareName ||
-                 lastMove.to === squareName)
-            ) {
-                square.classList.add("last-move");
-            }
-
-            const move = legalMoves.find(
-                item => item.to === squareName
-            );
-
-            if (selectedSquare && move) {
-                square.classList.add(
-                    piece ? "legal-capture" : "legal-move"
-                );
-            }
-
-            if (
-                piece &&
-                piece.type === "k" &&
-                piece.color === game.turn() &&
-                game.in_check()
-            ) {
-                square.classList.add("in-check");
-            }
-
-            if (piece) {
-                const pieceElement = document.createElement("span");
-
-                pieceElement.className =
-                    piece.color === "w"
-                        ? "piece-w"
-                        : "piece-b";
-
-                pieceElement.textContent =
-                    PIECES[piece.color][piece.type];
-
-                pieceElement.draggable = true;
-
-                square.appendChild(pieceElement);
-            }
-
-            square.addEventListener("click", () => {
-                handleSquareClick(squareName);
-            });
-
-            square.addEventListener("dragstart", event => {
-                if (!piece || piece.color !== game.turn()) {
-                    event.preventDefault();
-                    return;
-                }
-
-                event.dataTransfer.setData(
-                    "text/plain",
-                    squareName
-                );
-            });
-
-            square.addEventListener("dragover", event => {
-                event.preventDefault();
-            });
-
-            square.addEventListener("drop", event => {
-                event.preventDefault();
-
-                const from = event.dataTransfer.getData(
-                    "text/plain"
-                );
-
-                if (from) {
-                    makeMove(from, squareName);
-                }
-            });
-
-            board.appendChild(square);
-        });
-    });
-
-    updateGameInformation();
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--sidebar);
+    border-left: 1px solid var(--border);
+    padding: 25px 17px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+    transition: transform var(--transition);
 }
 
-/* ================= MOVE SELECTION ================= */
-
-function handleSquareClick(square) {
-    if (!gameStarted || gameFinished || aiThinking) return;
-
-    if (
-        gameMode === "computer" &&
-        game.turn() !== playerColor
-    ) {
-        return;
-    }
-
-    const piece = game.get(square);
-
-    if (!selectedSquare) {
-        if (piece && piece.color === game.turn()) {
-            selectSquare(square);
-        }
-
-        return;
-    }
-
-    if (selectedSquare === square) {
-        clearSelection();
-        return;
-    }
-
-    if (piece && piece.color === game.turn()) {
-        selectSquare(square);
-        return;
-    }
-
-    makeMove(selectedSquare, square);
+.main-content {
+    margin-right: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-function selectSquare(square) {
-    selectedSquare = square;
 
-    legalMoves = game.moves({
-        square: square,
-        verbose: true
-    });
+/* =====================================================
+   BRAND
+===================================================== */
 
-    renderBoard();
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 5px 5px 24px;
 }
 
-function clearSelection() {
-    selectedSquare = null;
-    legalMoves = [];
-    renderBoard();
+.brand-logo {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--gold);
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    font-size: 32px;
+    color: var(--gold-light);
+    background: linear-gradient(145deg, #273149, #111827);
+    box-shadow: 0 5px 25px rgba(214, 173, 88, 0.12);
 }
 
-/* ================= MAKE MOVE ================= */
-
-function makeMove(from, to, promotion = "q") {
-    if (!gameStarted || gameFinished || aiThinking) return false;
-
-    if (
-        gameMode === "computer" &&
-        game.turn() !== playerColor
-    ) {
-        return false;
-    }
-
-    let move;
-
-    try {
-        move = game.move({
-            from: from,
-            to: to,
-            promotion: promotion
-        });
-    } catch (error) {
-        move = null;
-    }
-
-    if (!move) {
-        toast("هذه النقلة غير قانونية.", "error");
-        return false;
-    }
-
-    lastMove = {
-        from: move.from,
-        to: move.to
-    };
-
-    moveHistory = game.history({
-        verbose: true
-    });
-
-    selectedSquare = null;
-    legalMoves = [];
-
-    renderBoard();
-    updateMoveHistory();
-    updateGameInformation();
-    checkGameOver();
-
-    if (
-        gameStarted &&
-        !gameFinished &&
-        gameMode === "computer" &&
-        game.turn() !== playerColor
-    ) {
-        setTimeout(computerMove, 350);
-    }
-
-    return true;
+.brand-info h2 {
+    font-size: 16px;
+    letter-spacing: 1px;
+    font-weight: 900;
 }
 
-/* ================= MOVE HISTORY ================= */
-
-function updateMoveHistory() {
-    const history = get("moveHistory");
-
-    if (!history) return;
-
-    history.innerHTML = "";
-
-    for (let i = 0; i < moveHistory.length; i += 2) {
-        const row = document.createElement("div");
-
-        const number = document.createElement("span");
-        const white = document.createElement("span");
-        const black = document.createElement("span");
-
-        number.textContent = `${Math.floor(i / 2) + 1}.`;
-
-        white.textContent = moveHistory[i].san;
-
-        black.textContent =
-            moveHistory[i + 1]?.san || "";
-
-        row.append(number, white, black);
-        history.appendChild(row);
-    }
-
-    history.scrollTop = history.scrollHeight;
+.brand-info span {
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 700;
 }
 
-/* ================= GAME INFORMATION ================= */
-
-function updateGameInformation() {
-    const turn = game.turn() === "w" ? "الأبيض" : "الأسود";
-
-    if (get("currentTurn")) {
-        get("currentTurn").textContent = turn;
-    }
-
-    if (get("moveCount")) {
-        get("moveCount").textContent =
-            Math.ceil(game.history().length / 2);
-    }
-
-    if (get("lastMove")) {
-        get("lastMove").textContent = lastMove
-            ? `${lastMove.from} → ${lastMove.to}`
-            : "لا توجد نقلات";
-    }
-
-    if (get("matchState")) {
-        get("matchState").textContent =
-            gameStarted ? "جارية" : "لم تبدأ";
-    }
-
-    if (get("matchType")) {
-        get("matchType").textContent =
-            gameMode === "computer"
-                ? "ضد الكمبيوتر"
-                : gameMode === "local"
-                ? "لاعبان محليًا"
-                : "لعبة صديق";
-    }
-
-    if (get("gameStatus")) {
-        if (!gameStarted) {
-            get("gameStatus").textContent =
-                "ابدأ مباراة جديدة للعب.";
-        } else if (game.in_check()) {
-            get("gameStatus").textContent =
-                `كش! ${turn} في خطر.`;
-        } else {
-            get("gameStatus").textContent =
-                `${turn} عليه الدور.`;
-        }
-    }
+.sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
 }
 
-/* ================= GAME OVER ================= */
 
-function checkGameOver() {
-    if (!game.game_over()) return;
+/* =====================================================
+   SIDEBAR MENU
+===================================================== */
 
-    gameFinished = true;
-    gameStarted = false;
-
-    let message = "انتهت المباراة.";
-
-    if (game.in_checkmate()) {
-        message =
-            game.turn() === "w"
-                ? "كش مات! الأسود فاز."
-                : "كش مات! الأبيض فاز.";
-    } else if (game.in_stalemate()) {
-        message = "تعادل بسبب الجمود.";
-    } else if (game.in_threefold_repetition()) {
-        message = "تعادل بسبب تكرار الوضعية.";
-    } else if (game.insufficient_material()) {
-        message = "تعادل بسبب عدم كفاية القطع.";
-    } else if (game.in_draw()) {
-        message = "انتهت المباراة بالتعادل.";
-    }
-
-    if (get("gameStatus")) {
-        get("gameStatus").textContent = message;
-    }
-
-    toast(message, "success");
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-/* ================= START GAME ================= */
-
-function startNewGame(mode = "computer", color = "w") {
-    game = new Chess();
-
-    selectedSquare = null;
-    legalMoves = [];
-    lastMove = null;
-    moveHistory = [];
-
-    gameMode = mode;
-    playerColor = color;
-
-    gameStarted = true;
-    gameFinished = false;
-    aiThinking = false;
-
-    boardFlipped = mode === "computer" && color === "b";
-
-    renderBoard();
-    updateMoveHistory();
-    updateGameInformation();
-
-    if (
-        mode === "computer" &&
-        playerColor === "b"
-    ) {
-        setTimeout(computerMove, 400);
-    }
-
-    if (get("gameView")) {
-        get("gameView").classList.add("active");
-    }
-
-    $$(".page-section").forEach(section => {
-        section.classList.remove("active");
-    });
-
-    closeModal("computerModal");
-    closeModal("friendModal");
-
-    toast("بدأت المباراة بنجاح.", "success");
+.menu-title {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 12px 12px 6px;
 }
 
-/* ================= COMPUTER ENGINE ================= */
-
-function evaluateBoard() {
-    if (game.in_checkmate()) {
-        return game.turn() === "w" ? -100000 : 100000;
-    }
-
-    if (game.in_draw()) return 0;
-
-    let score = 0;
-
-    const board = game.board();
-
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            const piece = board[row][col];
-
-            if (!piece) continue;
-
-            const value = PIECE_VALUES[piece.type];
-
-            score += piece.color === "w"
-                ? value
-                : -value;
-        }
-    }
-
-    return score;
+.nav-item {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: #aab4c5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 13px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 700;
+    transition: var(--transition);
 }
 
-function minimax(depth, alpha, beta, maximizing) {
-    if (depth === 0 || game.game_over()) {
-        return evaluateBoard();
-    }
-
-    const moves = game.moves({
-        verbose: true
-    });
-
-    if (maximizing) {
-        let best = -Infinity;
-
-        for (const move of moves) {
-            game.move(move);
-
-            const score = minimax(
-                depth - 1,
-                alpha,
-                beta,
-                false
-            );
-
-            game.undo();
-
-            best = Math.max(best, score);
-            alpha = Math.max(alpha, best);
-
-            if (beta <= alpha) break;
-        }
-
-        return best;
-    }
-
-    let best = Infinity;
-
-    for (const move of moves) {
-        game.move(move);
-
-        const score = minimax(
-            depth - 1,
-            alpha,
-            beta,
-            true
-        );
-
-        game.undo();
-
-        best = Math.min(best, score);
-        beta = Math.min(beta, best);
-
-        if (beta <= alpha) break;
-    }
-
-    return best;
+.nav-item:hover {
+    background: var(--panel);
+    color: var(--gold-light);
 }
 
-function chooseComputerMove() {
-    const moves = game.moves({
-        verbose: true
-    });
-
-    if (!moves.length) return null;
-
-    let bestMove = null;
-    let bestScore = game.turn() === "w"
-        ? -Infinity
-        : Infinity;
-
-    const maximizing = game.turn() === "w";
-
-    for (const move of moves) {
-        game.move(move);
-
-        const score = minimax(
-            Math.max(0, difficulty - 1),
-            -Infinity,
-            Infinity,
-            !maximizing
-        );
-
-        game.undo();
-
-        if (
-            maximizing && score > bestScore ||
-            !maximizing && score < bestScore
-        ) {
-            bestScore = score;
-            bestMove = move;
-        }
-    }
-
-    return bestMove;
-}
-
-function computerMove() {
-    if (
-        !gameStarted ||
-        gameFinished ||
-        game.game_over() ||
-        game.turn() === playerColor
-    ) {
-        return;
-    }
-
-    aiThinking = true;
-
-    if (get("gameStatus")) {
-        get("gameStatus").textContent =
-            "الكمبيوتر يفكر...";
-    }
-
-    setTimeout(() => {
-        const move = chooseComputerMove();
-
-        if (move) {
-            game.move(move);
-
-            lastMove = {
-                from: move.from,
-                to: move.to
-            };
-
-            moveHistory = game.history({
-                verbose: true
-            });
-        }
-
-        aiThinking = false;
-
-        selectedSquare = null;
-        legalMoves = [];
-
-        renderBoard();
-        updateMoveHistory();
-        updateGameInformation();
-        checkGameOver();
-
-    }, 100);
-}
-
-/* ================= GAME CONTROLS ================= */
-
-get("undoBtn")?.addEventListener("click", () => {
-    if (!gameStarted || aiThinking) return;
-
-    if (game.history().length === 0) return;
-
-    game.undo();
-
-    if (
-        gameMode === "computer" &&
-        game.turn() !== playerColor &&
-        game.history().length > 0
-    ) {
-        game.undo();
-    }
-
-    lastMove = null;
-
-    const history = game.history({
-        verbose: true
-    });
-
-    if (history.length) {
-        const previous = history[history.length - 1];
-
-        lastMove = {
-            from: previous.from,
-            to: previous.to
-        };
-    }
-
-    moveHistory = history;
-
-    gameFinished = false;
-    gameStarted = true;
-
-    clearSelection();
-    updateMoveHistory();
-    updateGameInformation();
-
-    toast("تم التراجع عن النقلة.");
-});
-
-get("restartBtn")?.addEventListener("click", () => {
-    if (!gameStarted && game.history().length === 0) return;
-
-    startNewGame(gameMode, playerColor);
-});
-
-get("flipBoardBtn")?.addEventListener("click", () => {
-    boardFlipped = !boardFlipped;
-    renderBoard();
-});
-
-get("resignBtn")?.addEventListener("click", () => {
-    if (!gameStarted || gameFinished) return;
-
-    gameStarted = false;
-    gameFinished = true;
-
-    const message = "استسلم اللاعب. انتهت المباراة.";
-
-    if (get("gameStatus")) {
-        get("gameStatus").textContent = message;
-    }
-
-    toast(message);
-});
-
-get("exitGameView")?.addEventListener("click", () => {
-    get("gameView")?.classList.remove("active");
-    showPage("home");
-});
-
-/* ================= COMPUTER MODAL ================= */
-
-get("computerBtn")?.addEventListener("click", () => {
-    openModal("computerModal");
-});
-
-get("startBtn")?.addEventListener("click", () => {
-    openModal("computerModal");
-});
-
-get("confirmComputer")?.addEventListener("click", () => {
-    const selectedDifficulty = get("difficulty")?.value || "2";
-    const selectedColor = get("playerColor")?.value || "w";
-
-    difficulty = Math.max(
-        1,
-        Math.min(3, Number(selectedDifficulty))
+.nav-item.active {
+    color: var(--gold-light);
+    background: linear-gradient(
+        90deg,
+        rgba(214, 173, 88, 0.03),
+        rgba(214, 173, 88, 0.15)
     );
+    border-color: rgba(214, 173, 88, 0.22);
+}
 
-    startNewGame("computer", selectedColor);
-});
+.nav-icon {
+    width: 25px;
+    text-align: center;
+    font-size: 20px;
+}
 
-/* ================= LOCAL GAME ================= */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 18px 9px 5px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-$$("[data-mode='local']").forEach(button => {
-    button.addEventListener("click", () => {
-        startNewGame("local", "w");
-    });
-});
+.footer-crown {
+    font-size: 31px;
+    color: var(--gold);
+}
 
-/* ================= FRIEND ROOMS ================= */
+.sidebar-footer strong {
+    display: block;
+    font-size: 11px;
+    color: var(--gold-light);
+    letter-spacing: 1px;
+}
 
-function generateRoomCode() {
-    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+.sidebar-footer small {
+    color: var(--muted);
+    font-size: 10px;
+}
 
-    let code = "";
 
-    for (let i = 0; i < 6; i++) {
-        code += characters[
-            Math.floor(Math.random() * characters.length)
-        ];
+/* =====================================================
+   TOPBAR
+===================================================== */
+
+.topbar {
+    height: 76px;
+    padding: 0 35px;
+    background: rgba(16, 23, 37, 0.85);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(15px);
+}
+
+.topbar-right,
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+}
+
+.breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.breadcrumb strong {
+    color: var(--gold-light);
+}
+
+.mode-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(87, 185, 138, 0.6);
+}
+
+.icon-button,
+.menu-toggle {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--gold-light);
+    border: 1px solid var(--border);
+    font-size: 20px;
+    transition: var(--transition);
+}
+
+.icon-button:hover,
+.menu-toggle:hover {
+    background: var(--panel-hover);
+}
+
+.menu-toggle {
+    display: none;
+}
+
+
+/* =====================================================
+   PAGE CONTAINER
+===================================================== */
+
+.page-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 35px;
+    flex: 1;
+}
+
+.page {
+    display: none;
+    animation: pageEnter 0.35s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.hero-section {
+    min-height: 340px;
+    background:
+        radial-gradient(
+            circle at 20% 50%,
+            rgba(214, 173, 88, 0.13),
+            transparent 35%
+        ),
+        linear-gradient(115deg, #17243a, #101725 65%, #192235);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 590px;
+}
+
+.eyebrow {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.hero-content h1 {
+    font-size: clamp(27px, 4vw, 43px);
+    font-weight: 900;
+    line-height: 1.5;
+    margin: 13px 0;
+}
+
+.hero-content h1 span {
+    display: block;
+    color: var(--gold-light);
+}
+
+.hero-content p {
+    max-width: 480px;
+    color: #aeb8c9;
+    line-height: 2;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.hero-art {
+    width: 260px;
+    height: 260px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.hero-circle {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(214, 173, 88, 0.35);
+    border-radius: 50%;
+    box-shadow:
+        0 0 50px rgba(214, 173, 88, 0.08),
+        inset 0 0 50px rgba(214, 173, 88, 0.05);
+}
+
+.hero-king {
+    color: var(--gold-light);
+    font-size: 165px;
+    text-shadow: 0 10px 45px rgba(214, 173, 88, 0.2);
+    z-index: 1;
+}
+
+.hero-decoration {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    color: rgba(214, 173, 88, 0.3);
+    font-size: 45px;
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.primary-button,
+.secondary-button,
+.danger-button {
+    min-height: 45px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.primary-button {
+    border: 1px solid var(--gold-light);
+    background: linear-gradient(135deg, #f0d28b, #bd9146);
+    color: #15130f;
+    box-shadow: 0 5px 20px rgba(214, 173, 88, 0.12);
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 8px 25px rgba(214, 173, 88, 0.22);
+}
+
+.primary-button span {
+    margin-right: 10px;
+}
+
+.secondary-button {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--gold-light);
+}
+
+.secondary-button:hover {
+    background: var(--panel-hover);
+}
+
+.danger-button {
+    background: rgba(215, 91, 99, 0.1);
+    border: 1px solid rgba(215, 91, 99, 0.3);
+    color: #f08d94;
+}
+
+.danger-button:hover {
+    background: rgba(215, 91, 99, 0.2);
+}
+
+.full-button {
+    width: 100%;
+    margin-top: 14px;
+}
+
+
+/* =====================================================
+   SECTION HEADINGS
+===================================================== */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 38px 0 18px;
+}
+
+.section-heading h2 {
+    font-size: 22px;
+    margin-top: 4px;
+}
+
+.page-header {
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    font-size: 29px;
+    font-weight: 900;
+    margin: 8px 0;
+}
+
+.page-header p {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   FEATURE CARDS
+===================================================== */
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.feature-card {
+    position: relative;
+    min-height: 215px;
+    padding: 22px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    text-align: right;
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(214, 173, 88, 0.5);
+    background: var(--panel-hover);
+}
+
+.featured-card {
+    background: linear-gradient(145deg, #273149, #151e2e);
+}
+
+.feature-icon {
+    display: block;
+    color: var(--gold-light);
+    font-size: 37px;
+    margin-bottom: 12px;
+}
+
+.feature-label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    font-weight: 900;
+}
+
+.feature-card h3 {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.feature-card p {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.9;
+}
+
+.feature-arrow {
+    position: absolute;
+    left: 18px;
+    bottom: 18px;
+    color: var(--gold);
+    font-size: 19px;
+}
+
+
+/* =====================================================
+   SECONDARY CARDS
+===================================================== */
+
+.secondary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.secondary-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 18px;
+    text-align: right;
+    color: var(--text);
+    transition: var(--transition);
+}
+
+.secondary-card:hover {
+    border-color: var(--gold);
+    background: var(--panel-hover);
+}
+
+.secondary-card > span {
+    font-size: 33px;
+    color: var(--gold-light);
+}
+
+.secondary-card div {
+    flex: 1;
+}
+
+.secondary-card h3 {
+    font-size: 14px;
+}
+
+.secondary-card p {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.secondary-card b {
+    color: var(--gold);
+    font-size: 20px;
+}
+
+
+/* =====================================================
+   PANELS AND FORMS
+===================================================== */
+
+.panel-card {
+    padding: 22px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    min-width: 0;
+}
+
+.panel-card h3 {
+    font-size: 16px;
+    margin-bottom: 18px;
+}
+
+.panel-card label {
+    display: block;
+    color: #c1cad8;
+    font-size: 12px;
+    margin: 14px 0 7px;
+    font-weight: 700;
+}
+
+.panel-card select,
+.panel-card input[type="search"],
+.panel-card textarea,
+.filter-bar select,
+.filter-bar input {
+    width: 100%;
+    background: #0e1624;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 11px 13px;
+    outline: none;
+    font-size: 12px;
+}
+
+.panel-card select:focus,
+.panel-card input:focus,
+.panel-card textarea:focus,
+.filter-bar select:focus,
+.filter-bar input:focus {
+    border-color: var(--gold);
+}
+
+.panel-card textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.panel-card input[type="checkbox"] {
+    accent-color: var(--gold);
+    margin-left: 8px;
+}
+
+
+/* =====================================================
+   GAME LAYOUT
+===================================================== */
+
+.game-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(270px, 0.85fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.game-board-panel {
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.board-player {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.board-player > div {
+    flex: 1;
+}
+
+.board-player strong {
+    font-size: 13px;
+}
+
+.board-player small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.board-player > strong:last-child {
+    color: var(--gold-light);
+    background: #0d1421;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.player-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #243149;
+    color: var(--gold-light);
+    font-size: 25px;
+}
+
+
+/* =====================================================
+   CHESS BOARD
+===================================================== */
+
+.chess-board {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 600px;
+    margin: 15px auto;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: repeat(8, minmax(0, 1fr));
+    border: 4px solid #9e7838;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    background: #d9c49a;
+}
+
+.chess-square {
+    display: grid;
+    place-items: center;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s ease;
+}
+
+.chess-square.light {
+    background: #e8d8b5;
+}
+
+.chess-square.dark {
+    background: #98744d;
+}
+
+.chess-square.selected {
+    background: #c6a34f;
+}
+
+.chess-square.possible-move::after {
+    content: "";
+    position: absolute;
+    width: 25%;
+    height: 25%;
+    background: rgba(20, 20, 20, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.chess-square.last-move {
+    background: rgba(226, 196, 91, 0.65);
+}
+
+.chess-square.in-check {
+    background: rgba(210, 65, 65, 0.8);
+}
+
+.chess-piece {
+    font-family: "DejaVu Sans", "Arial Unicode MS", sans-serif;
+    font-size: clamp(22px, 5vw, 48px);
+    line-height: 1;
+    z-index: 1;
+    cursor: grab;
+    user-select: none;
+}
+
+.chess-piece.white-piece {
+    color: #fffdf3;
+    text-shadow:
+        -1px -1px 1px #594d3c,
+        1px 1px 2px #594d3c,
+        0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.chess-piece.black-piece {
+    color: #20222a;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.chess-square:hover {
+    filter: brightness(1.08);
+}
+
+
+/* =====================================================
+   GAME CONTROLS
+===================================================== */
+
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.game-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+}
+
+.game-actions button,
+.analysis-buttons button {
+    min-height: 41px;
+    background: #0f1725;
+    border: 1px solid var(--border);
+    color: #c5cfdd;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.game-actions button:hover,
+.analysis-buttons button:hover {
+    color: var(--gold-light);
+    border-color: var(--gold);
+}
+
+#move-history {
+    max-height: 230px;
+    overflow-y: auto;
+    color: #c5cfdd;
+    font-size: 12px;
+}
+
+.empty-message {
+    color: var(--muted);
+    font-size: 12px;
+    padding: 10px 0;
+}
+
+.game-result {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    text-align: center;
+}
+
+
+/* =====================================================
+   CONTENT GRIDS
+===================================================== */
+
+.content-grid,
+.analysis-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.lesson-grid,
+.tactics-grid,
+.endgame-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.lesson-card,
+.tactic-card,
+.endgame-card {
+    min-height: 165px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    text-align: right;
+    padding: 22px;
+    transition: var(--transition);
+}
+
+.lesson-card:hover,
+.tactic-card:hover,
+.endgame-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold);
+    background: var(--panel-hover);
+}
+
+.lesson-card > span {
+    display: block;
+    color: var(--gold);
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.tactic-card > span,
+.endgame-card > span {
+    display: block;
+    color: var(--gold-light);
+    font-size: 37px;
+    margin-bottom: 10px;
+}
+
+.lesson-card h3,
+.tactic-card h3,
+.endgame-card h3 {
+    font-size: 15px;
+    margin: 7px 0;
+}
+
+.lesson-card p,
+.tactic-card p,
+.endgame-card p {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.lesson-view,
+#tactic-details,
+#endgame-details {
+    margin-top: 20px;
+    line-height: 2;
+    color: #c2cbd8;
+}
+
+
+/* =====================================================
+   OPENINGS
+===================================================== */
+
+.filter-bar {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.opening-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    margin-bottom: 18px;
+}
+
+.opening-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 18px;
+    color: var(--text);
+    text-align: right;
+    transition: var(--transition);
+}
+
+.opening-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+}
+
+.opening-card h3 {
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+.opening-card p {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.opening-card span {
+    color: var(--gold);
+    font-size: 10px;
+}
+
+
+/* =====================================================
+   ANALYSIS
+===================================================== */
+
+.analysis-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.analysis-layout .panel-card {
+    min-width: 0;
+}
+
+#analysis-result,
+#puzzle-feedback {
+    margin-top: 15px;
+    padding: 12px;
+    background: #0e1624;
+    border-radius: 9px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    padding: 22px;
+    background: linear-gradient(145deg, #1a263a, #131c2b);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+}
+
+.stat-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.stat-card strong {
+    display: block;
+    color: var(--gold-light);
+    font-size: 29px;
+    margin-top: 7px;
+}
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.main-footer {
+    text-align: center;
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.main-footer strong {
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.main-footer p {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+
+/* =====================================================
+   LIGHT THEME
+===================================================== */
+
+body.light-theme {
+    --bg: #eeeae0;
+    --bg-secondary: #f7f4ec;
+    --panel: #fffdf7;
+    --panel-hover: #f0eadc;
+    --sidebar: #f7f4ec;
+    --border: rgba(139, 105, 46, 0.2);
+    --text: #252a32;
+    --muted: #737987;
+}
+
+body.light-theme .topbar {
+    background: rgba(247, 244, 236, 0.92);
+}
+
+body.light-theme .nav-item {
+    color: #555d69;
+}
+
+body.light-theme .nav-item.active {
+    color: #8a682e;
+}
+
+body.light-theme .panel-card select,
+body.light-theme .panel-card input,
+body.light-theme .panel-card textarea,
+body.light-theme .filter-bar select,
+body.light-theme .filter-bar input,
+body.light-theme .game-actions button,
+body.light-theme .analysis-buttons button {
+    background: #f1eee6;
+    color: #252a32;
+}
+
+body.light-theme .feature-card,
+body.light-theme .secondary-card,
+body.light-theme .lesson-card,
+body.light-theme .tactic-card,
+body.light-theme .endgame-card,
+body.light-theme .opening-card {
+    color: #252a32;
+}
+
+
+/* =====================================================
+   BOARD STYLES
+===================================================== */
+
+body.board-wood .chess-square.light {
+    background: #e3bd8d;
+}
+
+body.board-wood .chess-square.dark {
+    background: #875332;
+}
+
+body.board-royal .chess-square.light {
+    background: #e6d6b0;
+}
+
+body.board-royal .chess-square.dark {
+    background: #596c72;
+}
+
+body.board-green .chess-square.light {
+    background: #eeeed2;
+}
+
+body.board-green .chess-square.dark {
+    background: #769656;
+}
+
+
+/* =====================================================
+   SCROLLBARS
+===================================================== */
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #39465a;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-dark);
+}
+
+
+/* =====================================================
+   RESPONSIVE - TABLET
+===================================================== */
+
+@media (max-width: 1100px) {
+
+    :root {
+        --sidebar-width: 235px;
     }
 
-    return code;
-}
-
-get("friendBtn")?.addEventListener("click", () => {
-    openModal("friendModal");
-});
-
-get("createRoomBtn")?.addEventListener("click", () => {
-    roomCode = generateRoomCode();
-
-    if (get("roomCode")) {
-        get("roomCode").textContent = roomCode;
+    .page-container {
+        padding: 25px;
     }
 
-    toast("تم إنشاء رمز الغرفة محليًا: " + roomCode, "success");
-});
-
-get("joinRoomBtn")?.addEventListener("click", () => {
-    const input = get("joinRoomCode");
-
-    const code = input?.value.trim().toUpperCase();
-
-    if (!code || code.length !== 6) {
-        toast("أدخل رمزًا صحيحًا مكونًا من 6 أحرف.", "error");
-        return;
+    .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    toast(
-        "واجهة الانضمام جاهزة، لكن اللعب بين جهازين يحتاج خادمًا مشتركًا.",
-        "info"
-    );
-});
+    .game-layout {
+        grid-template-columns: 1fr;
+    }
 
-/* ================= HOME MODE BUTTONS ================= */
+    .game-board-panel {
+        max-width: 620px;
+    }
 
-$$("[data-mode='computer']").forEach(button => {
-    button.addEventListener("click", () => {
-        openModal("computerModal");
-    });
-});
+    .game-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
 
-$$("[data-mode='friend']").forEach(button => {
-    button.addEventListener("click", () => {
-        openModal("friendModal");
-    });
-});
+    .game-controls .panel-card:last-child {
+        grid-column: 1 / -1;
+    }
 
-/* ================= SETTINGS ================= */
-
-function saveSetting(key, value) {
-    try {
-        localStorage.setItem(
-            "royal-chess-" + key,
-            String(value)
-        );
-    } catch (error) {
-        console.warn("Could not save setting:", error);
+    .statistics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-function readSetting(key, fallback) {
-    try {
-        return localStorage.getItem(
-            "royal-chess-" + key
-        ) ?? fallback;
-    } catch (error) {
-        return fallback;
+
+/* =====================================================
+   RESPONSIVE - MOBILE
+===================================================== */
+
+@media (max-width: 760px) {
+
+    :root {
+        --sidebar-width: 270px;
+    }
+
+    .sidebar {
+        transform: translateX(100%);
+        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-right: 0;
+    }
+
+    .topbar {
+        height: 65px;
+        padding: 0 15px;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .topbar-right,
+    .topbar-left {
+        gap: 10px;
+    }
+
+    .breadcrumb {
+        font-size: 10px;
+        gap: 6px;
+    }
+
+    .mode-status {
+        font-size: 10px;
+    }
+
+    .page-container {
+        padding: 18px 14px;
+    }
+
+    .hero-section {
+        padding: 27px 22px;
+        min-height: 300px;
+    }
+
+    .hero-art {
+        width: 120px;
+        height: 160px;
+        opacity: 0.5;
+        position: absolute;
+        left: -15px;
+        bottom: 0;
+    }
+
+    .hero-circle {
+        width: 120px;
+        height: 120px;
+    }
+
+    .hero-king {
+        font-size: 95px;
+    }
+
+    .hero-decoration {
+        font-size: 25px;
+    }
+
+    .hero-content {
+        max-width: 100%;
+    }
+
+    .hero-content h1 {
+        font-size: 27px;
+    }
+
+    .hero-content p {
+        font-size: 11px;
+        max-width: 90%;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .feature-card {
+        min-height: 190px;
+        padding: 15px;
+    }
+
+    .feature-card h3 {
+        font-size: 13px;
+    }
+
+    .feature-card p {
+        font-size: 10px;
+    }
+
+    .feature-icon {
+        font-size: 30px;
+    }
+
+    .secondary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-heading {
+        margin-top: 28px;
+    }
+
+    .page-header h1 {
+        font-size: 23px;
+    }
+
+    .game-board-panel {
+        padding: 10px;
+    }
+
+    .game-controls {
+        display: flex;
+    }
+
+    .content-grid,
+    .analysis-layout,
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .lesson-grid,
+    .tactics-grid,
+    .endgame-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .lesson-card,
+    .tactic-card,
+    .endgame-card {
+        min-height: 145px;
+        padding: 15px;
+    }
+
+    .opening-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card strong {
+        font-size: 24px;
     }
 }
 
-const boardThemes = {
-    green: ["#e8dfc9", "#789078"],
-    brown: ["#f0d9b5", "#b58863"],
-    blue: ["#dee8f5", "#6686aa"],
-    purple: ["#e7dff2", "#8874a8"]
-};
 
-function applyBoardTheme(theme) {
-    const colors = boardThemes[theme];
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
 
-    if (!colors) return;
+@media (max-width: 390px) {
 
-    const style = document.createElement("style");
-
-    style.id = "royal-board-theme";
-
-    style.textContent = `
-        #board .square.light { background: ${colors[0]} !important; }
-        #board .square.dark { background: ${colors[1]} !important; }
-    `;
-
-    get("royal-board-theme")?.remove();
-
-    document.head.appendChild(style);
-}
-
-const savedBoardTheme = readSetting("boardTheme", "green");
-
-if (get("boardTheme")) {
-    get("boardTheme").value = savedBoardTheme;
-}
-
-applyBoardTheme(savedBoardTheme);
-
-get("boardTheme")?.addEventListener("change", event => {
-    applyBoardTheme(event.target.value);
-    saveSetting("boardTheme", event.target.value);
-    renderBoard();
-});
-
-get("showLegalMoves")?.addEventListener("change", event => {
-    saveSetting("showLegalMoves", event.target.checked);
-});
-
-get("showLastMove")?.addEventListener("change", event => {
-    saveSetting("showLastMove", event.target.checked);
-});
-
-get("autoFlipBoard")?.addEventListener("change", event => {
-    saveSetting("autoFlipBoard", event.target.checked);
-});
-
-get("soundSetting")?.addEventListener("change", event => {
-    saveSetting("soundSetting", event.target.checked);
-});
-
-get("effectsSetting")?.addEventListener("change", event => {
-    saveSetting("effectsSetting", event.target.checked);
-});
-
-get("languageSetting")?.addEventListener("change", event => {
-    saveSetting("languageSetting", event.target.value);
-});
-
-get("animationSetting")?.addEventListener("change", event => {
-    saveSetting("animationSetting", event.target.value);
-});
-
-/* ================= RESTORE SETTINGS ================= */
-
-function restoreCheckbox(id, key, fallback = true) {
-    const element = get(id);
-
-    if (!element) return;
-
-    element.checked =
-        readSetting(key, String(fallback)) === "true";
-}
-
-restoreCheckbox("showLegalMoves", "showLegalMoves");
-restoreCheckbox("showLastMove", "showLastMove");
-restoreCheckbox("autoFlipBoard", "autoFlipBoard");
-restoreCheckbox("soundSetting", "soundSetting");
-restoreCheckbox("effectsSetting", "effectsSetting");
-
-if (get("languageSetting")) {
-    get("languageSetting").value =
-        readSetting("languageSetting", "ar");
-}
-
-if (get("animationSetting")) {
-    get("animationSetting").value =
-        readSetting("animationSetting", "normal");
-}
-
-/* ================= RESET SETTINGS ================= */
-
-get("resetSettingsBtn")?.addEventListener("click", () => {
-    const confirmed = confirm(
-        "هل تريد إعادة جميع الإعدادات إلى الوضع الافتراضي؟"
-    );
-
-    if (!confirmed) return;
-
-    Object.keys(localStorage)
-        .filter(key => key.startsWith("royal-chess-"))
-        .forEach(key => localStorage.removeItem(key));
-
-    location.reload();
-});
-
-/* ================= INITIALIZATION ================= */
-
-function initializeRoyalChess() {
-    if (typeof Chess !== "function") {
-        console.error(
-            "Chess.js library is missing. Load chess.js 0.10.3 first."
-        );
-
-        toast("تعذر تحميل محرك الشطرنج.", "error");
-        return;
+    .feature-grid,
+    .lesson-grid,
+    .tactics-grid,
+    .endgame-grid,
+    .opening-grid {
+        grid-template-columns: 1fr;
     }
 
-    renderBoard();
-    updateMoveHistory();
-    updateGameInformation();
-
-    if (get("homePage")) {
-        showPage("home");
+    .hero-content h1 {
+        font-size: 23px;
     }
 
-    console.log(
-        "%c ROYAL CHESS ",
-        "background:#17243b;color:#f2d99b;padding:10px;font-weight:bold;"
-    );
+    .breadcrumb span:first-child {
+        display: none;
+    }
 
-    console.log("Royal Chess initialized successfully.");
+    .mode-status {
+        display: none;
+    }
+
+    .game-actions {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeRoyalChess
-);
+
+/* =====================================================
+   ACCESSIBILITY
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
