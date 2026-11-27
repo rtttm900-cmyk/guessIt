@@ -1,1484 +1,1527 @@
-/* =====================================================
-   CHESS ARENA - ROYAL EDITION
-   Main Design System
-===================================================== */
+/* =========================================================
+   CHESS ARENA V2.0
+   Main Game Controller
+   Chess.js + Stockfish
+========================================================= */
 
-:root {
-    --bg: #0b0f18;
-    --bg-secondary: #101725;
-    --panel: #151e2e;
-    --panel-hover: #1c293c;
-    --sidebar: #0e1522;
-    --border: rgba(218, 180, 91, 0.15);
-    --gold: #d6ad58;
-    --gold-light: #f1d28a;
-    --gold-dark: #9e7838;
-    --text: #f2f0e9;
-    --muted: #8993a4;
-    --danger: #d75b63;
-    --success: #57b98a;
-    --radius: 15px;
-    --sidebar-width: 265px;
-    --transition: 0.25s ease;
+"use strict";
+
+/* ================= CONFIG ================= */
+
+const CONFIG = {
+    STORAGE_KEY: "chessArenaData",
+    SETTINGS_KEY: "chessArenaSettings",
+
+    STOCKFISH_URL:
+        "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js",
+
+    DIFFICULTY_DEPTH: {
+        1: 3,
+        2: 7,
+        3: 11,
+        4: 15
+    },
+
+    PIECES: {
+        w: {
+            k: "♔",
+            q: "♕",
+            r: "♖",
+            b: "♗",
+            n: "♘",
+            p: "♙"
+        },
+        b: {
+            k: "♚",
+            q: "♛",
+            r: "♜",
+            b: "♝",
+            n: "♞",
+            p: "♟"
+        }
+    }
+};
+
+
+/* ================= STATE ================= */
+
+let game = null;
+let engine = null;
+let engineReady = false;
+let engineLoading = false;
+let engineFailed = false;
+
+let playerColor = "w";
+let difficulty = 1;
+
+let selectedSquare = null;
+let legalMoves = [];
+let lastMove = null;
+
+let gameStarted = false;
+let gameFinished = false;
+let gameSaved = false;
+
+let startTimestamp = null;
+let durationInterval = null;
+
+let boardFlipped = false;
+let pendingPromotion = null;
+
+let confirmMoves = false;
+let showLegalMoves = true;
+
+let lastCompletedGame = null;
+
+let statistics = {
+    total: 0,
+    wins: 0,
+    losses: 0,
+    draws: 0
+};
+
+let gameHistory = [];
+
+
+/* ================= DOM HELPERS ================= */
+
+const $ = id => document.getElementById(id);
+
+function showToast(message, type = "") {
+    const container = $("toastContainer");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = "toast " + type;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3500);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+function setText(id, value) {
+    const element = $(id);
+    if (element) element.textContent = value;
 }
 
-html {
-    scroll-behavior: smooth;
+function formatDuration(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return [
+        String(hours).padStart(2, "0"),
+        String(minutes).padStart(2, "0"),
+        String(secs).padStart(2, "0")
+    ].join(":");
 }
 
-body {
-    min-height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Cairo", sans-serif;
-    overflow-x: hidden;
-}
+function getDuration() {
+    if (!startTimestamp) return 0;
 
-button,
-input,
-select,
-textarea {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
-}
-
-::selection {
-    background: var(--gold);
-    color: #111;
-}
-
-
-/* =====================================================
-   APP LAYOUT
-===================================================== */
-
-.app-container {
-    min-height: 100vh;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: var(--sidebar-width);
-    background: var(--sidebar);
-    border-left: 1px solid var(--border);
-    padding: 25px 17px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    overflow-y: auto;
-    transition: transform var(--transition);
-}
-
-.main-content {
-    margin-right: var(--sidebar-width);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-
-/* =====================================================
-   BRAND
-===================================================== */
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 5px 5px 24px;
-}
-
-.brand-logo {
-    width: 48px;
-    height: 48px;
-    border: 1px solid var(--gold);
-    border-radius: 13px;
-    display: grid;
-    place-items: center;
-    font-size: 32px;
-    color: var(--gold-light);
-    background: linear-gradient(145deg, #273149, #111827);
-    box-shadow: 0 5px 25px rgba(214, 173, 88, 0.12);
-}
-
-.brand-info h2 {
-    font-size: 16px;
-    letter-spacing: 1px;
-    font-weight: 900;
-}
-
-.brand-info span {
-    color: var(--gold);
-    font-size: 10px;
-    letter-spacing: 2px;
-    font-weight: 700;
-}
-
-.sidebar-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 14px 0;
-}
-
-
-/* =====================================================
-   SIDEBAR MENU
-===================================================== */
-
-.sidebar-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.menu-title {
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 800;
-    padding: 12px 12px 6px;
-}
-
-.nav-item {
-    width: 100%;
-    min-height: 44px;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    background: transparent;
-    color: #aab4c5;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 9px 13px;
-    text-align: right;
-    font-size: 13px;
-    font-weight: 700;
-    transition: var(--transition);
-}
-
-.nav-item:hover {
-    background: var(--panel);
-    color: var(--gold-light);
-}
-
-.nav-item.active {
-    color: var(--gold-light);
-    background: linear-gradient(
-        90deg,
-        rgba(214, 173, 88, 0.03),
-        rgba(214, 173, 88, 0.15)
+    return Math.floor(
+        (Date.now() - startTimestamp) / 1000
     );
-    border-color: rgba(214, 173, 88, 0.22);
-}
-
-.nav-icon {
-    width: 25px;
-    text-align: center;
-    font-size: 20px;
-}
-
-.sidebar-footer {
-    margin-top: auto;
-    padding: 18px 9px 5px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.footer-crown {
-    font-size: 31px;
-    color: var(--gold);
-}
-
-.sidebar-footer strong {
-    display: block;
-    font-size: 11px;
-    color: var(--gold-light);
-    letter-spacing: 1px;
-}
-
-.sidebar-footer small {
-    color: var(--muted);
-    font-size: 10px;
 }
 
 
-/* =====================================================
-   TOPBAR
-===================================================== */
+/* ================= STORAGE ================= */
 
-.topbar {
-    height: 76px;
-    padding: 0 35px;
-    background: rgba(16, 23, 37, 0.85);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    backdrop-filter: blur(15px);
-}
+function loadData() {
+    try {
+        const saved = JSON.parse(
+            localStorage.getItem(CONFIG.STORAGE_KEY)
+        );
 
-.topbar-right,
-.topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 17px;
-}
+        if (saved) {
+            statistics = {
+                ...statistics,
+                ...(saved.statistics || {})
+            };
 
-.breadcrumb {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.breadcrumb strong {
-    color: var(--gold-light);
-}
-
-.mode-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--muted);
-    font-size: 12px;
-}
-
-.status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 10px rgba(87, 185, 138, 0.6);
-}
-
-.icon-button,
-.menu-toggle {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: var(--panel);
-    color: var(--gold-light);
-    border: 1px solid var(--border);
-    font-size: 20px;
-    transition: var(--transition);
-}
-
-.icon-button:hover,
-.menu-toggle:hover {
-    background: var(--panel-hover);
-}
-
-.menu-toggle {
-    display: none;
-}
-
-
-/* =====================================================
-   PAGE CONTAINER
-===================================================== */
-
-.page-container {
-    width: 100%;
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 35px;
-    flex: 1;
-}
-
-.page {
-    display: none;
-    animation: pageEnter 0.35s ease;
-}
-
-.page.active {
-    display: block;
-}
-
-@keyframes pageEnter {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+            gameHistory = Array.isArray(saved.history)
+                ? saved.history
+                : [];
+        }
+    } catch (error) {
+        console.warn("Could not load saved data:", error);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    try {
+        const settings = JSON.parse(
+            localStorage.getItem(CONFIG.SETTINGS_KEY)
+        );
+
+        if (settings) {
+            confirmMoves = !!settings.confirmMoves;
+            showLegalMoves = settings.showLegalMoves !== false;
+
+            const theme = settings.theme === "light"
+                ? "light"
+                : "dark";
+
+            document.body.classList.toggle(
+                "light-theme",
+                theme === "light"
+            );
+
+            if ($("confirmMoves")) {
+                $("confirmMoves").checked = confirmMoves;
+            }
+
+            if ($("showLegalMoves")) {
+                $("showLegalMoves").checked = showLegalMoves;
+            }
+
+            document.querySelectorAll("[data-theme]").forEach(btn => {
+                btn.classList.toggle(
+                    "active",
+                    btn.dataset.theme === theme
+                );
+            });
+        }
+    } catch (error) {
+        console.warn("Could not load settings:", error);
+    }
+}
+
+function saveData() {
+    try {
+        localStorage.setItem(
+            CONFIG.STORAGE_KEY,
+            JSON.stringify({
+                statistics,
+                history: gameHistory
+            })
+        );
+    } catch (error) {
+        showToast("تعذر حفظ البيانات في المتصفح.", "error");
+    }
+}
+
+function saveSettings() {
+    const theme = document.body.classList.contains("light-theme")
+        ? "light"
+        : "dark";
+
+    try {
+        localStorage.setItem(
+            CONFIG.SETTINGS_KEY,
+            JSON.stringify({
+                confirmMoves,
+                showLegalMoves,
+                theme
+            })
+        );
+    } catch (error) {
+        console.warn("Could not save settings:", error);
     }
 }
 
 
-/* =====================================================
-   HERO
-===================================================== */
-
-.hero-section {
-    min-height: 340px;
-    background:
-        radial-gradient(
-            circle at 20% 50%,
-            rgba(214, 173, 88, 0.13),
-            transparent 35%
-        ),
-        linear-gradient(115deg, #17243a, #101725 65%, #192235);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 590px;
-}
-
-.eyebrow {
-    color: var(--gold);
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 2px;
-}
-
-.hero-content h1 {
-    font-size: clamp(27px, 4vw, 43px);
-    font-weight: 900;
-    line-height: 1.5;
-    margin: 13px 0;
-}
-
-.hero-content h1 span {
-    display: block;
-    color: var(--gold-light);
-}
-
-.hero-content p {
-    max-width: 480px;
-    color: #aeb8c9;
-    line-height: 2;
-    font-size: 13px;
-    margin-bottom: 25px;
-}
-
-.hero-art {
-    width: 260px;
-    height: 260px;
-    position: relative;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-}
-
-.hero-circle {
-    position: absolute;
-    width: 220px;
-    height: 220px;
-    border: 1px solid rgba(214, 173, 88, 0.35);
-    border-radius: 50%;
-    box-shadow:
-        0 0 50px rgba(214, 173, 88, 0.08),
-        inset 0 0 50px rgba(214, 173, 88, 0.05);
-}
-
-.hero-king {
-    color: var(--gold-light);
-    font-size: 165px;
-    text-shadow: 0 10px 45px rgba(214, 173, 88, 0.2);
-    z-index: 1;
-}
-
-.hero-decoration {
-    position: absolute;
-    left: 15px;
-    top: 15px;
-    color: rgba(214, 173, 88, 0.3);
-    font-size: 45px;
-}
-
-
-/* =====================================================
-   BUTTONS
-===================================================== */
-
-.primary-button,
-.secondary-button,
-.danger-button {
-    min-height: 45px;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-weight: 800;
-    font-size: 13px;
-    transition: var(--transition);
-}
-
-.primary-button {
-    border: 1px solid var(--gold-light);
-    background: linear-gradient(135deg, #f0d28b, #bd9146);
-    color: #15130f;
-    box-shadow: 0 5px 20px rgba(214, 173, 88, 0.12);
-}
-
-.primary-button:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.08);
-    box-shadow: 0 8px 25px rgba(214, 173, 88, 0.22);
-}
-
-.primary-button span {
-    margin-right: 10px;
-}
-
-.secondary-button {
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--gold-light);
-}
-
-.secondary-button:hover {
-    background: var(--panel-hover);
-}
-
-.danger-button {
-    background: rgba(215, 91, 99, 0.1);
-    border: 1px solid rgba(215, 91, 99, 0.3);
-    color: #f08d94;
-}
-
-.danger-button:hover {
-    background: rgba(215, 91, 99, 0.2);
-}
-
-.full-button {
-    width: 100%;
-    margin-top: 14px;
-}
-
-
-/* =====================================================
-   SECTION HEADINGS
-===================================================== */
-
-.section-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 38px 0 18px;
-}
-
-.section-heading h2 {
-    font-size: 22px;
-    margin-top: 4px;
-}
-
-.page-header {
-    margin-bottom: 28px;
-}
-
-.page-header h1 {
-    font-size: 29px;
-    font-weight: 900;
-    margin: 8px 0;
-}
-
-.page-header p {
-    color: var(--muted);
-    font-size: 13px;
-}
-
-
-/* =====================================================
-   FEATURE CARDS
-===================================================== */
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-}
-
-.feature-card {
-    position: relative;
-    min-height: 215px;
-    padding: 22px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    text-align: right;
-    transition: var(--transition);
-    overflow: hidden;
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(214, 173, 88, 0.5);
-    background: var(--panel-hover);
-}
-
-.featured-card {
-    background: linear-gradient(145deg, #273149, #151e2e);
-}
-
-.feature-icon {
-    display: block;
-    color: var(--gold-light);
-    font-size: 37px;
-    margin-bottom: 12px;
-}
-
-.feature-label {
-    display: block;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--gold);
-    font-weight: 900;
-}
-
-.feature-card h3 {
-    font-size: 16px;
-    margin: 5px 0;
-}
-
-.feature-card p {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.9;
-}
-
-.feature-arrow {
-    position: absolute;
-    left: 18px;
-    bottom: 18px;
-    color: var(--gold);
-    font-size: 19px;
-}
-
-
-/* =====================================================
-   SECONDARY CARDS
-===================================================== */
-
-.secondary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 13px;
-}
-
-.secondary-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 18px;
-    text-align: right;
-    color: var(--text);
-    transition: var(--transition);
-}
-
-.secondary-card:hover {
-    border-color: var(--gold);
-    background: var(--panel-hover);
-}
-
-.secondary-card > span {
-    font-size: 33px;
-    color: var(--gold-light);
-}
-
-.secondary-card div {
-    flex: 1;
-}
-
-.secondary-card h3 {
-    font-size: 14px;
-}
-
-.secondary-card p {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.secondary-card b {
-    color: var(--gold);
-    font-size: 20px;
-}
-
-
-/* =====================================================
-   PANELS AND FORMS
-===================================================== */
-
-.panel-card {
-    padding: 22px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    min-width: 0;
-}
-
-.panel-card h3 {
-    font-size: 16px;
-    margin-bottom: 18px;
-}
-
-.panel-card label {
-    display: block;
-    color: #c1cad8;
-    font-size: 12px;
-    margin: 14px 0 7px;
-    font-weight: 700;
-}
-
-.panel-card select,
-.panel-card input[type="search"],
-.panel-card textarea,
-.filter-bar select,
-.filter-bar input {
-    width: 100%;
-    background: #0e1624;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 11px 13px;
-    outline: none;
-    font-size: 12px;
-}
-
-.panel-card select:focus,
-.panel-card input:focus,
-.panel-card textarea:focus,
-.filter-bar select:focus,
-.filter-bar input:focus {
-    border-color: var(--gold);
-}
-
-.panel-card textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.panel-card input[type="checkbox"] {
-    accent-color: var(--gold);
-    margin-left: 8px;
-}
-
-
-/* =====================================================
-   GAME LAYOUT
-===================================================== */
-
-.game-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(270px, 0.85fr);
-    gap: 20px;
-    align-items: start;
-}
-
-.game-board-panel {
-    padding: 20px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    max-width: 720px;
-    width: 100%;
-    margin: 0 auto;
-}
-
-.board-player {
-    min-height: 58px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.board-player > div {
-    flex: 1;
-}
-
-.board-player strong {
-    font-size: 13px;
-}
-
-.board-player small {
-    display: block;
-    color: var(--muted);
-    font-size: 10px;
-}
-
-.board-player > strong:last-child {
-    color: var(--gold-light);
-    background: #0d1421;
-    padding: 7px 12px;
-    border-radius: 8px;
-    font-variant-numeric: tabular-nums;
-}
-
-.player-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    background: #243149;
-    color: var(--gold-light);
-    font-size: 25px;
-}
-
-
-/* =====================================================
-   CHESS BOARD
-===================================================== */
-
-.chess-board {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    max-width: 600px;
-    margin: 15px auto;
-    display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    grid-template-rows: repeat(8, minmax(0, 1fr));
-    border: 4px solid #9e7838;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-    background: #d9c49a;
-}
-
-.chess-square {
-    display: grid;
-    place-items: center;
-    position: relative;
-    min-width: 0;
-    min-height: 0;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.12s ease;
-}
-
-.chess-square.light {
-    background: #e8d8b5;
-}
-
-.chess-square.dark {
-    background: #98744d;
-}
-
-.chess-square.selected {
-    background: #c6a34f;
-}
-
-.chess-square.possible-move::after {
-    content: "";
-    position: absolute;
-    width: 25%;
-    height: 25%;
-    background: rgba(20, 20, 20, 0.3);
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.chess-square.last-move {
-    background: rgba(226, 196, 91, 0.65);
-}
-
-.chess-square.in-check {
-    background: rgba(210, 65, 65, 0.8);
-}
-
-.chess-piece {
-    font-family: "DejaVu Sans", "Arial Unicode MS", sans-serif;
-    font-size: clamp(22px, 5vw, 48px);
-    line-height: 1;
-    z-index: 1;
-    cursor: grab;
-    user-select: none;
-}
-
-.chess-piece.white-piece {
-    color: #fffdf3;
-    text-shadow:
-        -1px -1px 1px #594d3c,
-        1px 1px 2px #594d3c,
-        0 2px 4px rgba(0, 0, 0, 0.6);
-}
-
-.chess-piece.black-piece {
-    color: #20222a;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
-}
-
-.chess-square:hover {
-    filter: brightness(1.08);
-}
-
-
-/* =====================================================
-   GAME CONTROLS
-===================================================== */
-
-.game-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.game-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 9px;
-}
-
-.game-actions button,
-.analysis-buttons button {
-    min-height: 41px;
-    background: #0f1725;
-    border: 1px solid var(--border);
-    color: #c5cfdd;
-    border-radius: 9px;
-    font-size: 11px;
-    font-weight: 700;
-    transition: var(--transition);
-}
-
-.game-actions button:hover,
-.analysis-buttons button:hover {
-    color: var(--gold-light);
-    border-color: var(--gold);
-}
-
-#move-history {
-    max-height: 230px;
-    overflow-y: auto;
-    color: #c5cfdd;
-    font-size: 12px;
-}
-
-.empty-message {
-    color: var(--muted);
-    font-size: 12px;
-    padding: 10px 0;
-}
-
-.game-result {
-    margin-top: 20px;
-    padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--panel);
-    text-align: center;
-}
-
-
-/* =====================================================
-   CONTENT GRIDS
-===================================================== */
-
-.content-grid,
-.analysis-layout {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-    align-items: start;
-}
-
-.lesson-grid,
-.tactics-grid,
-.endgame-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 15px;
-}
-
-.lesson-card,
-.tactic-card,
-.endgame-card {
-    min-height: 165px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: var(--radius);
-    text-align: right;
-    padding: 22px;
-    transition: var(--transition);
-}
-
-.lesson-card:hover,
-.tactic-card:hover,
-.endgame-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--gold);
-    background: var(--panel-hover);
-}
-
-.lesson-card > span {
-    display: block;
-    color: var(--gold);
-    font-size: 24px;
-    font-weight: 900;
-}
-
-.tactic-card > span,
-.endgame-card > span {
-    display: block;
-    color: var(--gold-light);
-    font-size: 37px;
-    margin-bottom: 10px;
-}
-
-.lesson-card h3,
-.tactic-card h3,
-.endgame-card h3 {
-    font-size: 15px;
-    margin: 7px 0;
-}
-
-.lesson-card p,
-.tactic-card p,
-.endgame-card p {
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 1.8;
-}
-
-.lesson-view,
-#tactic-details,
-#endgame-details {
-    margin-top: 20px;
-    line-height: 2;
-    color: #c2cbd8;
-}
-
-
-/* =====================================================
-   OPENINGS
-===================================================== */
-
-.filter-bar {
-    display: grid;
-    grid-template-columns: 1fr 220px;
-    gap: 12px;
-    margin-bottom: 18px;
-}
-
-.opening-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 13px;
-    margin-bottom: 18px;
-}
-
-.opening-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 18px;
-    color: var(--text);
-    text-align: right;
-    transition: var(--transition);
-}
-
-.opening-card:hover {
-    border-color: var(--gold);
-    transform: translateY(-3px);
-}
-
-.opening-card h3 {
-    font-size: 14px;
-    margin-bottom: 7px;
-}
-
-.opening-card p {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.opening-card span {
-    color: var(--gold);
-    font-size: 10px;
-}
-
-
-/* =====================================================
-   ANALYSIS
-===================================================== */
-
-.analysis-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-}
-
-.analysis-layout .panel-card {
-    min-width: 0;
-}
-
-#analysis-result,
-#puzzle-feedback {
-    margin-top: 15px;
-    padding: 12px;
-    background: #0e1624;
-    border-radius: 9px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.9;
-}
-
-
-/* =====================================================
-   STATISTICS
-===================================================== */
-
-.statistics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 13px;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    padding: 22px;
-    background: linear-gradient(145deg, #1a263a, #131c2b);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-}
-
-.stat-card span {
-    display: block;
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.stat-card strong {
-    display: block;
-    color: var(--gold-light);
-    font-size: 29px;
-    margin-top: 7px;
-}
-
-
-/* =====================================================
-   SETTINGS
-===================================================== */
-
-.settings-layout {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-}
-
-
-/* =====================================================
-   FOOTER
-===================================================== */
-
-.main-footer {
-    text-align: center;
-    padding: 24px;
-    border-top: 1px solid var(--border);
-    background: var(--bg-secondary);
-}
-
-.main-footer strong {
-    color: var(--gold);
-    font-size: 12px;
-    letter-spacing: 2px;
-}
-
-.main-footer p {
-    color: var(--muted);
-    font-size: 10px;
-    margin-top: 4px;
-}
-
-
-/* =====================================================
-   LIGHT THEME
-===================================================== */
-
-body.light-theme {
-    --bg: #eeeae0;
-    --bg-secondary: #f7f4ec;
-    --panel: #fffdf7;
-    --panel-hover: #f0eadc;
-    --sidebar: #f7f4ec;
-    --border: rgba(139, 105, 46, 0.2);
-    --text: #252a32;
-    --muted: #737987;
-}
-
-body.light-theme .topbar {
-    background: rgba(247, 244, 236, 0.92);
-}
-
-body.light-theme .nav-item {
-    color: #555d69;
-}
-
-body.light-theme .nav-item.active {
-    color: #8a682e;
-}
-
-body.light-theme .panel-card select,
-body.light-theme .panel-card input,
-body.light-theme .panel-card textarea,
-body.light-theme .filter-bar select,
-body.light-theme .filter-bar input,
-body.light-theme .game-actions button,
-body.light-theme .analysis-buttons button {
-    background: #f1eee6;
-    color: #252a32;
-}
-
-body.light-theme .feature-card,
-body.light-theme .secondary-card,
-body.light-theme .lesson-card,
-body.light-theme .tactic-card,
-body.light-theme .endgame-card,
-body.light-theme .opening-card {
-    color: #252a32;
-}
-
-
-/* =====================================================
-   BOARD STYLES
-===================================================== */
-
-body.board-wood .chess-square.light {
-    background: #e3bd8d;
-}
-
-body.board-wood .chess-square.dark {
-    background: #875332;
-}
-
-body.board-royal .chess-square.light {
-    background: #e6d6b0;
-}
-
-body.board-royal .chess-square.dark {
-    background: #596c72;
-}
-
-body.board-green .chess-square.light {
-    background: #eeeed2;
-}
-
-body.board-green .chess-square.dark {
-    background: #769656;
-}
-
-
-/* =====================================================
-   SCROLLBARS
-===================================================== */
-
-::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg);
-}
-
-::-webkit-scrollbar-thumb {
-    background: #39465a;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gold-dark);
-}
-
-
-/* =====================================================
-   RESPONSIVE - TABLET
-===================================================== */
-
-@media (max-width: 1100px) {
-
-    :root {
-        --sidebar-width: 235px;
+/* ================= NAVIGATION ================= */
+
+const pageNames = {
+    home: "الرئيسية",
+    play: "ساحة اللعب",
+    computer: "ضد الكمبيوتر",
+    history: "سجل المباريات",
+    analysis: "تحليل المباريات",
+    stats: "الإحصائيات",
+    settings: "الإعدادات"
+};
+
+function navigateTo(page) {
+    if (!pageNames[page]) return;
+
+    document.querySelectorAll(".page").forEach(section => {
+        section.classList.toggle(
+            "active",
+            section.id === "page-" + page
+        );
+    });
+
+    document.querySelectorAll(".nav-item[data-page]").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            btn.dataset.page === page
+        );
+    });
+
+    setText("pageTitle", pageNames[page]);
+
+    const sidebar = $("sidebar");
+    if (sidebar) sidebar.classList.remove("open");
+
+    if (page === "stats" || page === "home") {
+        updateStatistics();
     }
 
-    .page-container {
-        padding: 25px;
-    }
-
-    .feature-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .game-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .game-board-panel {
-        max-width: 620px;
-    }
-
-    .game-controls {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: start;
-    }
-
-    .game-controls .panel-card:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .statistics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    if (page === "history") {
+        renderHistory();
     }
 }
 
 
-/* =====================================================
-   RESPONSIVE - MOBILE
-===================================================== */
+/* ================= STOCKFISH ENGINE ================= */
 
-@media (max-width: 760px) {
+function loadEngine() {
+    if (engineReady || engineLoading) return;
 
-    :root {
-        --sidebar-width: 270px;
-    }
+    engineLoading = true;
 
-    .sidebar {
-        transform: translateX(100%);
-        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.35);
-    }
+    try {
+        const workerCode = `
+            importScripts("${CONFIG.STOCKFISH_URL}");
 
-    .sidebar.open {
-        transform: translateX(0);
-    }
+            self.onerror = function(message) {
+                self.postMessage("ENGINE_ERROR " + message);
+            };
+        `;
 
-    .main-content {
-        margin-right: 0;
-    }
+        const blob = new Blob(
+            [workerCode],
+            { type: "application/javascript" }
+        );
 
-    .topbar {
-        height: 65px;
-        padding: 0 15px;
-    }
+        const workerURL = URL.createObjectURL(blob);
 
-    .menu-toggle {
-        display: block;
-    }
+        engine = new Worker(workerURL);
 
-    .topbar-right,
-    .topbar-left {
-        gap: 10px;
-    }
+        URL.revokeObjectURL(workerURL);
 
-    .breadcrumb {
-        font-size: 10px;
-        gap: 6px;
-    }
+        engine.onmessage = function(event) {
+            const message = String(event.data || "");
 
-    .mode-status {
-        font-size: 10px;
-    }
+            if (message === "uciok") {
+                engine.postMessage("isready");
+                return;
+            }
 
-    .page-container {
-        padding: 18px 14px;
-    }
+            if (message === "readyok") {
+                engineReady = true;
+                engineLoading = false;
+                engineFailed = false;
 
-    .hero-section {
-        padding: 27px 22px;
-        min-height: 300px;
-    }
+                showToast("محرك الشطرنج جاهز.", "success");
 
-    .hero-art {
-        width: 120px;
-        height: 160px;
-        opacity: 0.5;
-        position: absolute;
-        left: -15px;
-        bottom: 0;
-    }
+                if (gameStarted && !gameFinished) {
+                    requestEngineMove();
+                }
 
-    .hero-circle {
-        width: 120px;
-        height: 120px;
-    }
+                return;
+            }
 
-    .hero-king {
-        font-size: 95px;
-    }
+            if (message.startsWith("bestmove")) {
+                handleBestMove(message);
+                return;
+            }
 
-    .hero-decoration {
-        font-size: 25px;
-    }
+            if (message.startsWith("ENGINE_ERROR")) {
+                engineFailed = true;
+                engineLoading = false;
+                engineReady = false;
 
-    .hero-content {
-        max-width: 100%;
-    }
+                showToast(
+                    "تعذر تحميل محرك Stockfish. تحقق من الاتصال بالإنترنت.",
+                    "error"
+                );
+            }
+        };
 
-    .hero-content h1 {
-        font-size: 27px;
-    }
+        engine.onerror = function(error) {
+            engineFailed = true;
+            engineLoading = false;
+            engineReady = false;
 
-    .hero-content p {
-        font-size: 11px;
-        max-width: 90%;
-    }
+            console.error("Stockfish error:", error);
 
-    .feature-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
+            showToast(
+                "تعذر تشغيل محرك الشطرنج. تحقق من توفر المحرك.",
+                "error"
+            );
+        };
 
-    .feature-card {
-        min-height: 190px;
-        padding: 15px;
-    }
+        engine.postMessage("uci");
 
-    .feature-card h3 {
-        font-size: 13px;
-    }
+    } catch (error) {
+        engineFailed = true;
+        engineLoading = false;
 
-    .feature-card p {
-        font-size: 10px;
-    }
+        console.error(error);
 
-    .feature-icon {
-        font-size: 30px;
-    }
-
-    .secondary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .section-heading {
-        margin-top: 28px;
-    }
-
-    .page-header h1 {
-        font-size: 23px;
-    }
-
-    .game-board-panel {
-        padding: 10px;
-    }
-
-    .game-controls {
-        display: flex;
-    }
-
-    .content-grid,
-    .analysis-layout,
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .lesson-grid,
-    .tactics-grid,
-    .endgame-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .lesson-card,
-    .tactic-card,
-    .endgame-card {
-        min-height: 145px;
-        padding: 15px;
-    }
-
-    .opening-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .filter-bar {
-        grid-template-columns: 1fr;
-    }
-
-    .statistics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 9px;
-    }
-
-    .stat-card {
-        padding: 15px;
-    }
-
-    .stat-card strong {
-        font-size: 24px;
+        showToast("حدث خطأ أثناء تشغيل الروبوت.", "error");
     }
 }
 
 
-/* =====================================================
-   SMALL MOBILE
-===================================================== */
+/* ================= BOARD ================= */
 
-@media (max-width: 390px) {
+function createBoard() {
+    const board = $("chessBoard");
+    if (!board || !game) return;
 
-    .feature-grid,
-    .lesson-grid,
-    .tactics-grid,
-    .endgame-grid,
-    .opening-grid {
-        grid-template-columns: 1fr;
-    }
+    board.innerHTML = "";
 
-    .hero-content h1 {
-        font-size: 23px;
-    }
+    const files = boardFlipped
+        ? ["h", "g", "f", "e", "d", "c", "b", "a"]
+        : ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-    .breadcrumb span:first-child {
-        display: none;
-    }
+    const ranks = boardFlipped
+        ? ["1", "2", "3", "4", "5", "6", "7", "8"]
+        : ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-    .mode-status {
-        display: none;
-    }
+    const position = game.board();
 
-    .game-actions {
-        grid-template-columns: 1fr 1fr;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+
+            const file = files[col];
+            const rank = ranks[row];
+            const square = file + rank;
+
+            const squareElement = document.createElement("button");
+
+            squareElement.type = "button";
+            squareElement.className = "chess-square";
+            squareElement.dataset.square = square;
+            squareElement.setAttribute(
+                "aria-label",
+                "المربع " + square
+            );
+
+            const light = (
+                "abcdefgh".indexOf(file) +
+                Number(rank)
+            ) % 2 === 0;
+
+            squareElement.classList.add(
+                light ? "light" : "dark"
+            );
+
+            const piece = position[8 - Number(rank)]
+                ["abcdefgh".indexOf(file)];
+
+            if (piece) {
+                const pieceElement = document.createElement("span");
+
+                pieceElement.className = "chess-piece";
+
+                pieceElement.textContent =
+                    CONFIG.PIECES[piece.color][piece.type];
+
+                squareElement.appendChild(pieceElement);
+            }
+
+            if (
+                selectedSquare === square &&
+                !gameFinished
+            ) {
+                squareElement.classList.add("selected");
+            }
+
+            if (
+                lastMove &&
+                (
+                    lastMove.from === square ||
+                    lastMove.to === square
+                )
+            ) {
+                squareElement.classList.add("last-move");
+            }
+
+            if (
+                !gameFinished &&
+                showLegalMoves &&
+                legalMoves.some(move => move.to === square)
+            ) {
+                const capture = legalMoves.some(
+                    move => move.to === square && move.captured
+                );
+
+                squareElement.classList.add(
+                    capture ? "legal-capture" : "legal-move"
+                );
+            }
+
+            board.appendChild(squareElement);
+        }
     }
 }
 
 
-/* =====================================================
-   ACCESSIBILITY
-===================================================== */
+/* ================= BOARD INTERACTION ================= */
 
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
+function selectSquare(square) {
+    if (!game || !gameStarted || gameFinished) return;
+
+    if (game.turn() !== playerColor) return;
+
+    const piece = game.get(square);
+
+    if (
+        selectedSquare &&
+        legalMoves.some(move => move.to === square)
+    ) {
+        const move = legalMoves.find(
+            item => item.to === square
+        );
+
+        if (
+            move.promotion &&
+            ["q", "r", "b", "n"].includes(move.promotion)
+        ) {
+            showPromotionChooser(
+                selectedSquare,
+                square
+            );
+            return;
+        }
+
+        executePlayerMove(selectedSquare, square);
+        return;
     }
+
+    if (piece && piece.color === playerColor) {
+        selectedSquare = square;
+
+        legalMoves = game.moves({
+            square,
+            verbose: true
+        });
+
+        createBoard();
+        return;
+    }
+
+    selectedSquare = null;
+    legalMoves = [];
+
+    createBoard();
+}
+
+function executePlayerMove(from, to, promotion = "q") {
+    if (!game || gameFinished) return;
+
+    if (game.turn() !== playerColor) return;
+
+    if (confirmMoves) {
+        const confirmed = window.confirm(
+            "هل تريد تنفيذ هذه النقلة؟"
+        );
+
+        if (!confirmed) return;
+    }
+
+    let move;
+
+    try {
+        move = game.move({
+            from,
+            to,
+            promotion
+        });
+    } catch (error) {
+        move = null;
+    }
+
+    if (!move) {
+        showToast("هذه النقلة غير قانونية.", "error");
+        return;
+    }
+
+    lastMove = {
+        from: move.from,
+        to: move.to
+    };
+
+    selectedSquare = null;
+    legalMoves = [];
+
+    beginGameClock();
+    updateGameInterface();
+    createBoard();
+
+    checkGameEnd();
+
+    if (!gameFinished) {
+        requestEngineMove();
+    }
+}
+
+
+/* ================= PROMOTION ================= */
+
+function showPromotionChooser(from, to) {
+    pendingPromotion = { from, to };
+
+    const modal = $("promotionModal");
+    const options = $("promotionOptions");
+
+    if (!modal || !options) return;
+
+    options.innerHTML = "";
+
+    const types = ["q", "r", "b", "n"];
+
+    types.forEach(type => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+
+        button.textContent =
+            CONFIG.PIECES[playerColor][type];
+
+        button.title = {
+            q: "ملكة",
+            r: "قلعة",
+            b: "فيل",
+            n: "حصان"
+        }[type];
+
+        button.addEventListener("click", () => {
+            const move = pendingPromotion;
+
+            modal.classList.add("hidden");
+            pendingPromotion = null;
+
+            if (move) {
+                executePlayerMove(
+                    move.from,
+                    move.to,
+                    type
+                );
+            }
+        });
+
+        options.appendChild(button);
+    });
+
+    modal.classList.remove("hidden");
+}
+
+
+/* ================= CLOCK ================= */
+
+function beginGameClock() {
+    if (gameStarted) return;
+
+    gameStarted = true;
+    startTimestamp = Date.now();
+
+    const date = new Date(startTimestamp);
+
+    setText(
+        "gameStartTime",
+        date.toLocaleTimeString("ar-SA", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        })
+    );
+
+    updateDuration();
+
+    durationInterval = setInterval(
+        updateDuration,
+        1000
+    );
+}
+
+function updateDuration() {
+    setText(
+        "gameDuration",
+        formatDuration(getDuration())
+    );
+}
+
+
+/* ================= ENGINE MOVE ================= */
+
+function requestEngineMove() {
+    if (!game || gameFinished || !gameStarted) return;
+
+    if (game.turn() === playerColor) return;
+
+    if (!engineReady) {
+        if (!engineFailed && !engineLoading) {
+            loadEngine();
+        }
+
+        return;
+    }
+
+    const depth = CONFIG.DIFFICULTY_DEPTH[difficulty];
+
+    engine.postMessage("stop");
+    engine.postMessage("ucinewgame");
+    engine.postMessage("isready");
+
+    // Position is sent after the engine is ready.
+    const fen = game.fen();
+
+    engine.postMessage("position fen " + fen);
+    engine.postMessage("go depth " + depth);
+}
+
+function handleBestMove(message) {
+    if (!game || gameFinished) return;
+
+    if (game.turn() === playerColor) return;
+
+    const parts = message.trim().split(/\s+/);
+    const bestMove = parts[1];
+
+    if (!bestMove || bestMove === "(none)") {
+        checkGameEnd();
+        return;
+    }
+
+    const from = bestMove.substring(0, 2);
+    const to = bestMove.substring(2, 4);
+    const promotion = bestMove[4] || "q";
+
+    let move;
+
+    try {
+        move = game.move({
+            from,
+            to,
+            promotion
+        });
+    } catch (error) {
+        move = null;
+    }
+
+    if (!move) {
+        showToast(
+            "تعذر تنفيذ نقلة الروبوت. أعد المباراة.",
+            "error"
+        );
+        return;
+    }
+
+    lastMove = {
+        from: move.from,
+        to: move.to
+    };
+
+    selectedSquare = null;
+    legalMoves = [];
+
+    updateGameInterface();
+    createBoard();
+
+    checkGameEnd();
+}
+
+
+/* ================= GAME STATUS ================= */
+
+function getGameResult() {
+    if (game.in_checkmate()) {
+        return {
+            result: game.turn() === playerColor
+                ? "loss"
+                : "win",
+
+            title: game.turn() === playerColor
+                ? "لقد خسرت!"
+                : "لقد فزت!",
+
+            message: "كش مات! انتهت المباراة."
+        };
+    }
+
+    if (game.in_stalemate()) {
+        return {
+            result: "draw",
+            title: "تعادل",
+            message: "انتهت المباراة بسبب حالة الجمود."
+        };
+    }
+
+    if (game.in_threefold_repetition()) {
+        return {
+            result: "draw",
+            title: "تعادل",
+            message: "تكررت الوضعية ثلاث مرات."
+        };
+    }
+
+    if (game.insufficient_material()) {
+        return {
+            result: "draw",
+            title: "تعادل",
+            message: "لا توجد قطع كافية للفوز."
+        };
+    }
+
+    if (game.in_draw()) {
+        return {
+            result: "draw",
+            title: "تعادل",
+            message: "انتهت المباراة بالتعادل."
+        };
+    }
+
+    return null;
+}
+
+function checkGameEnd() {
+    if (!game || gameFinished) return;
+
+    const result = getGameResult();
+
+    if (result) {
+        finishGame(result);
+    } else {
+        setText(
+            "gameStatus",
+            game.turn() === playerColor
+                ? "دورك"
+                : "دور الروبوت"
+        );
+    }
+}
+
+function finishGame(result) {
+    if (gameFinished) return;
+
+    gameFinished = true;
+
+    if (durationInterval) {
+        clearInterval(durationInterval);
+        durationInterval = null;
+    }
+
+    setText("gameStatus", "انتهت المباراة");
+
+    if (engineReady) {
+        engine.postMessage("stop");
+    }
+
+    saveFinishedGame(result);
+
+    setText("gameOverTitle", result.title);
+
+    setText(
+        "gameOverMessage",
+        result.message +
+        " المدة: " + formatDuration(getDuration()) +
+        " | النقلات: " + game.history().length
+    );
+
+    const modal = $("gameOverModal");
+
+    if (modal) modal.classList.remove("hidden");
+
+    createBoard();
+}
+
+
+/* ================= SAVE RESULT ================= */
+
+function saveFinishedGame(result) {
+    if (gameSaved) return;
+
+    gameSaved = true;
+
+    statistics.total++;
+
+    if (result.result === "win") {
+        statistics.wins++;
+    } else if (result.result === "loss") {
+        statistics.losses++;
+    } else {
+        statistics.draws++;
+    }
+
+    const record = {
+        id: Date.now(),
+        date: new Date().toLocaleString("ar-SA"),
+        result: result.result,
+        title: result.title,
+        difficulty,
+        color: playerColor,
+        duration: getDuration(),
+        moves: game.history().length,
+        pgn: game.pgn(),
+        fen: game.fen()
+    };
+
+    gameHistory.unshift(record);
+
+    if (gameHistory.length > 100) {
+        gameHistory.length = 100;
+    }
+
+    lastCompletedGame = record;
+
+    saveData();
+    updateStatistics();
+    renderHistory();
+}
+
+
+/* ================= GAME INITIALIZATION ================= */
+
+function startNewGame() {
+    if (typeof Chess !== "function") {
+        showToast(
+            "تعذر تحميل مكتبة Chess.js. تحقق من الإنترنت.",
+            "error"
+        );
+        return;
+    }
+
+    const selectedColor =
+        document.querySelector(".color-option.active[data-color]");
+
+    const chosenColor = selectedColor
+        ? selectedColor.dataset.color
+        : "white";
+
+    if (chosenColor === "random") {
+        playerColor = Math.random() < 0.5 ? "w" : "b";
+    } else {
+        playerColor = chosenColor === "black" ? "b" : "w";
+    }
+
+    game = new Chess();
+
+    gameStarted = false;
+    gameFinished = false;
+    gameSaved = false;
+
+    startTimestamp = null;
+
+    if (durationInterval) {
+        clearInterval(durationInterval);
+        durationInterval = null;
+    }
+
+    selectedSquare = null;
+    legalMoves = [];
+    lastMove = null;
+    pendingPromotion = null;
+
+    boardFlipped = playerColor === "b";
+
+    if (engineReady) {
+        engine.postMessage("stop");
+        engine.postMessage("ucinewgame");
+    }
+
+    const computerColor = playerColor === "w" ? "b" : "w";
+
+    setText(
+        "playerColor",
+        playerColor === "w" ? "الأبيض" : "الأسود"
+    );
+
+    setText(
+        "opponentColor",
+        computerColor === "w" ? "الأبيض" : "الأسود"
+    );
+
+    setText(
+        "opponentLevel",
+        ["", "مبتدئ", "متوسط", "متقدم", "خبير"][difficulty]
+    );
+
+    setText("gameStatus", "جاهزة للعب");
+    setText("gameStartTime", "--:--");
+    setText("gameDuration", "00:00:00");
+    setText("moveCount", "0");
+
+    setText(
+        "moveHistory",
+        "لم يتم لعب أي نقلة بعد."
+    );
+
+    const promotionModal = $("promotionModal");
+    if (promotionModal) promotionModal.classList.add("hidden");
+
+    const gameOverModal = $("gameOverModal");
+    if (gameOverModal) gameOverModal.classList.add("hidden");
+
+    navigateTo("play");
+
+    createBoard();
+
+    if (!engineReady && !engineFailed) {
+        loadEngine();
+    }
+
+    if (game.turn() !== playerColor) {
+        beginGameClock();
+        requestEngineMove();
+    }
+
+    showToast("بدأت مباراة جديدة.", "success");
+}
+
+
+/* ================= RESTART ================= */
+
+function restartGame() {
+    if (!game) {
+        startNewGame();
+        return;
+    }
+
+    if (engineReady) {
+        engine.postMessage("stop");
+    }
+
+    game = new Chess();
+
+    gameStarted = false;
+    gameFinished = false;
+    gameSaved = false;
+
+    startTimestamp = null;
+
+    if (durationInterval) {
+        clearInterval(durationInterval);
+        durationInterval = null;
+    }
+
+    selectedSquare = null;
+    legalMoves = [];
+    lastMove = null;
+    pendingPromotion = null;
+
+    setText("gameStartTime", "--:--");
+    setText("gameDuration", "00:00:00");
+    setText("moveCount", "0");
+    setText("gameStatus", "جاهزة للعب");
+
+    renderMoveHistory();
+
+    const modal = $("gameOverModal");
+    if (modal) modal.classList.add("hidden");
+
+    const promotion = $("promotionModal");
+    if (promotion) promotion.classList.add("hidden");
+
+    createBoard();
+
+    if (game.turn() !== playerColor) {
+        beginGameClock();
+        requestEngineMove();
+    }
+
+    showToast("تمت إعادة المباراة.");
+}
+
+
+/* ================= UNDO ================= */
+
+function undoMove() {
+    if (!game || gameFinished) return;
+
+    if (!game.history().length) {
+        showToast("لا توجد نقلات للتراجع عنها.");
+        return;
+    }
+
+    if (engineReady) {
+        engine.postMessage("stop");
+    }
+
+    // Undo the bot move first, then the player's move.
+    if (game.turn() === playerColor) {
+        game.undo();
+        if (game.history().length) {
+            game.undo();
+        }
+    } else {
+        game.undo();
+    }
+
+    selectedSquare = null;
+    legalMoves = [];
+
+    const history = game.history({ verbose: true });
+
+    lastMove = history.length
+        ? {
+            from: history[history.length - 1].from,
+            to: history[history.length - 1].to
+        }
+        : null;
+
+    gameFinished = false;
+    gameSaved = false;
+
+    const modal = $("gameOverModal");
+    if (modal) modal.classList.add("hidden");
+
+    updateGameInterface();
+    createBoard();
+
+    if (game.turn() !== playerColor) {
+        requestEngineMove();
+    } else {
+        setText("gameStatus", "دورك");
+    }
+
+    showToast("تم التراجع عن النقلات.");
+}
+
+
+/* ================= RESIGN ================= */
+
+function resignGame() {
+    if (!game || gameFinished) return;
+
+    if (!gameStarted) {
+        showToast("ابدأ المباراة أولاً.");
+        return;
+    }
+
+    const confirmed = window.confirm(
+        "هل أنت متأكد أنك تريد إنهاء المباراة؟"
+    );
+
+    if (!confirmed) return;
+
+    finishGame({
+        result: "loss",
+        title: "استسلمت",
+        message: "تم إنهاء المباراة بالاستسلام."
+    });
+}
+
+
+/* ================= UPDATE INTERFACE ================= */
+
+function updateGameInterface() {
+    if (!game) return;
+
+    setText(
+        "moveCount",
+        String(game.history().length)
+    );
+
+    setText(
+        "gameStatus",
+        game.turn() === playerColor
+            ? "دورك"
+            : "دور الروبوت"
+    );
+
+    renderMoveHistory();
+}
+
+function renderMoveHistory() {
+    const container = $("moveHistory");
+    if (!container || !game) return;
+
+    const moves = game.history({ verbose: true });
+
+    container.innerHTML = "";
+
+    if (!moves.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-message";
+        empty.textContent = "لم يتم لعب أي نقلة بعد.";
+
+        container.appendChild(empty);
+        return;
+    }
+
+    const table = document.createElement("div");
+    table.className = "moves-table";
+
+    for (let i = 0; i < moves.length; i += 2) {
+        const row = document.createElement("div");
+        row.className = "moves-row";
+
+        const number = document.createElement("span");
+        number.textContent = (Math.floor(i / 2) + 1) + ".";
+
+        const white = document.createElement("strong");
+        white.textContent = moves[i].san;
+
+        const black = document.createElement("strong");
+        black.textContent = moves[i + 1]
+            ? moves[i + 1].san
+            : "—";
+
+        row.append(number, white, black);
+        table.appendChild(row);
+    }
+
+    container.appendChild(table);
+    container.scrollTop = container.scrollHeight;
+}
+
+
+/* ================= STATISTICS ================= */
+
+function updateStatistics() {
+    setText("homeTotalGames", statistics.total);
+    setText("homeWins", statistics.wins);
+    setText("homeLosses", statistics.losses);
+    setText("homeDraws", statistics.draws);
+
+    setText("statsTotal", statistics.total);
+    setText("statsWins", statistics.wins);
+    setText("statsLosses", statistics.losses);
+    setText("statsDraws", statistics.draws);
+
+    const percentage = statistics.total
+        ? Math.round(
+            statistics.wins / statistics.total * 100
+        )
+        : 0;
+
+    const bar = $("winRateBar");
+
+    if (bar) {
+        bar.style.width = percentage + "%";
+    }
+
+    setText("winRateText", percentage + "%");
+}
+
+
+/* ================= HISTORY ================= */
+
+function renderHistory() {
+    const container = $("historyList");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!gameHistory.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-message";
+        empty.textContent = "لا توجد مباريات مسجلة حتى الآن.";
+
+        container.appendChild(empty);
+        return;
+    }
+
+    gameHistory.forEach(record => {
+        const item = document.createElement("div");
+
+        item.className = "history-item";
+
+        const heading = document.createElement("strong");
+        heading.textContent = record.title;
+
+        const details = document.createElement("p");
+
+        details.textContent =
+            record.date +
+            " | " +
+            formatDuration(record.duration) +
+            " | " +
+            record.moves +
+            " نقلة";
+
+        item.append(heading, details);
+
+        container.appendChild(item);
+    });
+}
+
+
+/* ================= ANALYSIS ================= */
+
+function analyzeLastGame() {
+    if (!lastCompletedGame) {
+        showToast("لا توجد مباراة مكتملة لتحليلها.");
+        return;
+    }
+
+    const container = $("analysisResults");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const title = document.createElement("h3");
+    title.textContent = "بيانات آخر مباراة";
+
+    const details = document.createElement("p");
+
+    details.textContent =
+        "النتيجة: " + lastCompletedGame.title +
+        " | الصعوبة: " + lastCompletedGame.difficulty +
+        " | النقلات: " + lastCompletedGame.moves +
+        " | المدة: " + formatDuration(lastCompletedGame.duration);
+
+    const pgn = document.createElement("pre");
+    pgn.textContent = lastCompletedGame.pgn || "لا يوجد سجل نقلات.";
+
+    pgn.style.whiteSpace = "pre-wrap";
+    pgn.style.direction = "ltr";
+    pgn.style.textAlign = "left";
+    pgn.style.overflowWrap = "anywhere";
+    pgn.style.fontSize = "12px";
+
+    container.append(title, details, pgn);
+
+    showToast("تم عرض سجل المباراة.");
+}
+
+
+/* ================= SETTINGS ================= */
+
+function setTheme(theme) {
+    const light = theme === "light";
+
+    document.body.classList.toggle(
+        "light-theme",
+        light
+    );
+
+    document.querySelectorAll("[data-theme]").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            btn.dataset.theme === theme
+        );
+    });
+
+    saveSettings();
+}
+
+function clearStatistics() {
+    const confirmed = window.confirm(
+        "سيتم حذف جميع الإحصائيات وسجل المباريات. هل تريد المتابعة؟"
+    );
+
+    if (!confirmed) return;
+
+    statistics = {
+        total: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0
+    };
+
+    gameHistory = [];
+    lastCompletedGame = null;
+
+    saveData();
+    updateStatistics();
+    renderHistory();
+
+    const analysis = $("analysisResults");
+
+    if (analysis) {
+        analysis.textContent = "لا يوجد تحليل متاح حالياً.";
+    }
+
+    showToast("تم مسح الإحصائيات والسجل.", "success");
+}
+
+
+/* ================= DIFFICULTY ================= */
+
+function setDifficulty(value) {
+    difficulty = Number(value);
+
+    document.querySelectorAll("[data-difficulty]").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            Number(btn.dataset.difficulty) === difficulty
+        );
+    });
+}
+
+
+/* ================= COLOR ================= */
+
+function setColor(button) {
+    document.querySelectorAll("[data-color]").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            btn === button
+        );
+    });
+}
+
+
+/* ================= EVENT LISTENERS ================= */
+
+function setupNavigation() {
+    document.querySelectorAll("[data-page]").forEach(button => {
+        button.addEventListener("click", () => {
+            navigateTo(button.dataset.page);
+        });
+    });
+
+    document.querySelectorAll('[data-action="start-game"]').forEach(button => {
+        button.addEventListener("click", () => {
+            navigateTo("computer");
+        });
+    });
+
+    const menu = $("menuToggle");
+
+    if (menu) {
+        menu.addEventListener("click", () => {
+            $("sidebar")?.classList.toggle("open");
+        });
+    }
+
+    document.addEventListener("click", event => {
+        const sidebar = $("sidebar");
+        const menuButton = $("menuToggle");
+
+        if (
+            sidebar &&
+            menuButton &&
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !menuButton.contains(event.target)
+        ) {
+            sidebar.classList.remove("open");
+        }
+    });
+}
+
+function setupGameControls() {
+    $("startComputerGame")?.addEventListener(
+        "click",
+        startNewGame
+    );
+
+    $("newGameBtn")?.addEventListener(
+        "click",
+        startNewGame
+    );
+
+    $("restartBtn")?.addEventListener(
+        "click",
+        restartGame
+    );
+
+    $("undoBtn")?.addEventListener(
+        "click",
+        undoMove
+    );
+
+    $("resignBtn")?.addEventListener(
+        "click",
+        resignGame
+    );
+
+    $("flipBoardBtn")?.addEventListener("click", () => {
+        boardFlipped = !boardFlipped;
+        createBoard();
+    });
+
+    $("chessBoard")?.addEventListener("click", event => {
+        const square = event.target.closest("[data-square]");
+
+        if (!square) return;
+
+        selectSquare(square.dataset.square);
+    });
+
+    $("gameOverNewGame")?.addEventListener("click", () => {
+        startNewGame();
+    });
+
+    $("gameOverClose")?.addEventListener("click", () => {
+        $("gameOverModal")?.classList.add("hidden");
+    });
+
+    $("promotionModal")?.addEventListener("click", event => {
+        if (event.target.id === "promotionModal") {
+            pendingPromotion = null;
+            event.currentTarget.classList.add("hidden");
+        }
+    });
+}
+
+function setupSettings() {
+    document.querySelectorAll("[data-difficulty]").forEach(button => {
+        button.addEventListener("click", () => {
+            setDifficulty(button.dataset.difficulty);
+        });
+    });
+
+    document.querySelectorAll("[data-color]").forEach(button => {
+        button.addEventListener("click", () => {
+            setColor(button);
+        });
+    });
+
+    document.querySelectorAll("[data-theme]").forEach(button => {
+        button.addEventListener("click", () => {
+            setTheme(button.dataset.theme);
+        });
+    });
+
+    $("confirmMoves")?.addEventListener("change", event => {
+        confirmMoves = event.target.checked;
+        saveSettings();
+    });
+
+    $("showLegalMoves")?.addEventListener("change", event => {
+        showLegalMoves = event.target.checked;
+        saveSettings();
+        createBoard();
+    });
+
+    $("clearStatsBtn")?.addEventListener(
+        "click",
+        clearStatistics
+    );
+
+    document.querySelector('[data-action="analyze-last-game"]')
+        ?.addEventListener("click", analyzeLastGame);
+}
+
+
+/* ================= INITIALIZATION ================= */
+
+function initializeChessArena() {
+    if (typeof Chess !== "function") {
+        showToast(
+            "مكتبة Chess.js غير متاحة. تحقق من الاتصال بالإنترنت.",
+            "error"
+        );
+        return;
+    }
+
+    loadData();
+
+    game = new Chess();
+
+    setupNavigation();
+    setupGameControls();
+    setupSettings();
+
+    updateStatistics();
+    renderHistory();
+    renderMoveHistory();
+    createBoard();
+
+    setDifficulty(1);
+
+    loadEngine();
+
+    console.log("Chess Arena initialized successfully.");
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeChessArena
+    );
+} else {
+    initializeChessArena();
 }
